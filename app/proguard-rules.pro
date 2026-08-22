@@ -1,0 +1,10 @@
+# Defaulty ProGuard/R8 Rules
+# The default Android optimization rules handle most cases.
+# Add project-specific rules here as needed.
+
+# Keep SupportedRole enum for serialization in navigation args
+-keepclassmembers enum app.defaulty.domain.model.SupportedRole {
+    <fields>;
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}

@@ -1,0 +1,59 @@
+package app.defaulty.ui.components
+
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.Drawable
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Android
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+
+/**
+ * Displays an app icon from a Drawable, converting to Compose-compatible
+ * ImageBitmap. Falls back to the Android icon if the drawable is null.
+ *
+ * No Accompanist dependency — uses direct Bitmap conversion.
+ */
+@Composable
+fun AppIcon(
+    drawable: Drawable?,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    size: Dp = 40.dp,
+) {
+    if (drawable != null) {
+        val imageBitmap = remember(drawable) {
+            val width = drawable.intrinsicWidth.coerceAtLeast(1)
+            val height = drawable.intrinsicHeight.coerceAtLeast(1)
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
+            drawable.draw(canvas)
+            bitmap.asImageBitmap()
+        }
+        Image(
+            bitmap = imageBitmap,
+            contentDescription = contentDescription,
+            modifier = modifier
+                .size(size)
+                .clip(RoundedCornerShape(8.dp)),
+        )
+    } else {
+        Icon(
+            imageVector = Icons.Default.Android,
+            contentDescription = contentDescription,
+            modifier = modifier.size(size),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}

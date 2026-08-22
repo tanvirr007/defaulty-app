@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Package visibility: required for API 30+ so PackageManager queries return
+         complete results. Without this, role-holder lookups silently return empty.
+         Section 17 of spec. -->
+    <queries>
+        <!-- Browser: HTTPS web browsing -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
+        <!-- SMS: messaging -->
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="smsto" />
+        </intent>
+        <!-- Phone: dialer -->
+        <intent>
+            <action android:name="android.intent.action.DIAL" />
+        </intent>
+        <!-- Home: launcher -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
+        </intent>
+        <!-- Assistant -->
+        <intent>
+            <action android:name="android.intent.action.ASSIST" />
+        </intent>
+        <!-- Call screening -->
+        <intent>
+            <action android:name="android.telecom.CallScreeningService" />
+        </intent>
+        <!-- Call redirection -->
+        <intent>
+            <action android:name="android.telecom.CallRedirectionService" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".DefaultyApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Defaulty.Splash">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:enableOnBackInvokedCallback="true"
+            android:theme="@style/Theme.Defaulty.Splash">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

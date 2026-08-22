@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Night variant inherits from base; Compose handles actual dark theming -->
+</resources>

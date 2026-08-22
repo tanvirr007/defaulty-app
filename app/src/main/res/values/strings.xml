@@ -1,0 +1,69 @@
+<resources>
+    <string name="app_name">Defaulty</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Home screen -->
+    <string name="your_defaults">Your defaults</string>
+    <string name="other_defaults">Other supported defaults</string>
+    <string name="opening_links">Opening links</string>
+    <string name="opening_links_subtitle">Manage app links</string>
+    <string name="no_default_set">No default set</string>
+
+    <!-- Details screen -->
+    <string name="default_role_title">Default %1$s</string>
+    <string name="current_default">%1$s — currently your default %2$s.</string>
+    <string name="no_current_default">No app is set as the default for %1$s.</string>
+    <string name="change_default">Change default</string>
+    <string name="change_default_description">Choose which app Android should use for %1$s.</string>
+    <string name="unable_to_open_settings">Unable to open system settings. Please change this default from Android Settings.</string>
+    <string name="no_apps_available">No compatible apps are installed for this role.</string>
+
+    <!-- Opening Links screen -->
+    <string name="opening_links_title">Opening links</string>
+    <string name="link_handling_enabled">Opens supported links</string>
+    <string name="link_handling_disabled">Doesn\'t open supported links</string>
+    <string name="no_link_apps">No apps with link handling configured.</string>
+    <string name="verified_links_count">%1$d verified links</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Settings</string>
+    <string name="appearance">Appearance</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="how_it_works">How it works</string>
+    <string name="privacy">Privacy</string>
+    <string name="open_source_licenses">Open-source licenses</string>
+    <string name="github">GitHub</string>
+    <string name="version_label">Version</string>
+    <string name="close">Close</string>
+
+    <!-- How it works content -->
+    <string name="how_it_works_content">Android controls which apps are set as your defaults. When you change a default, Android shows its own confirmation screen.\n\nSome changes require Android\'s system interface — this is by design to protect your preferences.\n\nDefaulty helps you view and manage your defaults, but the actual changes are always handled securely by Android itself.</string>
+
+    <!-- Privacy content -->
+    <string name="privacy_content">Defaulty is 100%% offline. It doesn\'t collect, store, or transmit any personal data.\n\nNo analytics. No tracking. No ads. No network access.\n\nAll information is read directly from Android\'s built-in APIs and stays on your device.</string>
+
+    <!-- Licenses content -->
+    <string name="licenses_content">Defaulty uses the following open-source libraries:\n\n• Jetpack Compose — Apache License 2.0\n• Material 3 — Apache License 2.0\n• AndroidX Navigation — Apache License 2.0\n• AndroidX DataStore — Apache License 2.0\n• AndroidX Core SplashScreen — Apache License 2.0</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_title">Welcome to Defaulty</string>
+    <string name="onboarding_welcome_description">A simple utility for viewing and managing your Android default applications.</string>
+    <string name="onboarding_how_title">How it works</string>
+    <string name="onboarding_how_description">Android controls which apps handle things like web browsing, phone calls, and messages.\n\nWhen you change a default, Android will show its own confirmation screen. This is normal — it\'s how Android keeps your choices secure.</string>
+    <string name="onboarding_appearance_title">Choose your look</string>
+    <string name="onboarding_appearance_description">Select your preferred theme. You can always change this later in Settings.</string>
+    <string name="onboarding_ready_title">You\'re all set!</string>
+    <string name="onboarding_ready_description">Tap below to start managing your default apps.</string>
+    <string name="next">Next</string>
+    <string name="back">Back</string>
+    <string name="get_started">Get started</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_app_icon">%1$s app icon</string>
+    <string name="cd_navigate_back">Navigate back</string>
+</resources>

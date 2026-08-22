@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Splash screen theme — used before Compose takes over -->
+    <style name="Theme.Defaulty.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.Defaulty</item>
+    </style>
+
+    <!-- Base app theme (Compose handles actual Material 3 theming) -->
+    <style name="Theme.Defaulty" parent="Theme.Material3.DayNight.NoActionBar" />
+</resources>
