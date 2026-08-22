@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -30,20 +31,27 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import app.defaulty.R
+import app.defaulty.domain.model.MediaHandlerType
 import app.defaulty.domain.model.SupportedRole
 import app.defaulty.ui.details.DefaultAppDetailsScreen
+import app.defaulty.ui.details.MediaHandlerDetailsScreen
 import app.defaulty.ui.home.HomeScreen
 import app.defaulty.ui.links.OpeningLinksScreen
 import app.defaulty.ui.onboarding.OnboardingScreen
+import app.defaulty.ui.others.OthersScreen
 import app.defaulty.ui.settings.SettingsScreen
 
 sealed class Screen(val route: String) {
     data object Onboarding : Screen("onboarding")
     data object Home : Screen("home")
+    data object Others : Screen("others")
     data object Settings : Screen("settings")
     data object Links : Screen("links")
     data object Details : Screen("details/{roleId}") {
         fun createRoute(role: SupportedRole): String = "details/${role.name}"
+    }
+    data object MediaDetails : Screen("media_details/{mediaId}") {
+        fun createRoute(type: MediaHandlerType): String = "media_details/${type.id}"
     }
 }
 
@@ -98,7 +106,10 @@ fun DefaultyNavGraph(
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                ) {
                     bottomNavItems.forEach { item ->
                         val selected = currentRoute == item.route
                         NavigationBarItem(
@@ -126,14 +137,13 @@ fun DefaultyNavGraph(
                 }
             }
         },
-        // Edge-to-edge: window insets handled at Scaffold level
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         modifier = modifier.fillMaxSize(),
     ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = startDestination,
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
             enterTransition = {
                 fadeIn(animationSpec = tween(200)) + slideIntoContainer(
                     towards = AnimatedContentTransitionScope.SlideDirection.Start,
@@ -176,9 +186,26 @@ fun DefaultyNavGraph(
                     onNavigateToDetails = { role ->
                         navController.navigate(Screen.Details.createRoute(role))
                     },
+                    onNavigateToOthers = {
+                        navController.navigate(Screen.Others.route)
+                    },
+                )
+            }
+
+            composable(Screen.Others.route) {
+                OthersScreen(
+                    onNavigateToDetails = { role ->
+                        navController.navigate(Screen.Details.createRoute(role))
+                    },
+                    onNavigateToMediaDetails = { type ->
+                        navController.navigate(Screen.MediaDetails.createRoute(type))
+                    },
                     onNavigateToLinks = {
                         navController.navigate(Screen.Links.route)
-                    }
+                    },
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
                 )
             }
 
@@ -211,14 +238,41 @@ fun DefaultyNavGraph(
                         }
                     )
                 } else {
-                    // Graceful fallback if unknown role passed
                     HomeScreen(
                         onNavigateToDetails = { r ->
                             navController.navigate(Screen.Details.createRoute(r))
                         },
-                        onNavigateToLinks = {
-                            navController.navigate(Screen.Links.route)
+                        onNavigateToOthers = {
+                            navController.navigate(Screen.Others.route)
+                        },
+                    )
+                }
+            }
+
+            composable(
+                route = Screen.MediaDetails.route,
+                arguments = listOf(
+                    navArgument("mediaId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val mediaId = backStackEntry.arguments?.getString("mediaId")
+                val mediaType = mediaId?.let { MediaHandlerType.fromId(it) }
+
+                if (mediaType != null) {
+                    MediaHandlerDetailsScreen(
+                        type = mediaType,
+                        onNavigateBack = {
+                            navController.popBackStack()
                         }
+                    )
+                } else {
+                    HomeScreen(
+                        onNavigateToDetails = { r ->
+                            navController.navigate(Screen.Details.createRoute(r))
+                        },
+                        onNavigateToOthers = {
+                            navController.navigate(Screen.Others.route)
+                        },
                     )
                 }
             }

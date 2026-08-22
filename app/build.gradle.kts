@@ -99,6 +99,10 @@ dependencies {
     // Core KTX
     implementation("androidx.core:core-ktx")
 
+    // Shizuku (ADB privileged shell execution)
+    implementation("dev.rikka.shizuku:api:13.1.5")
+    implementation("dev.rikka.shizuku:provider:13.1.5")
+
     // Debug tooling
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

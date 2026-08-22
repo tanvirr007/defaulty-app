@@ -4,29 +4,54 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.outlined.Android
+import androidx.compose.material.icons.outlined.BrightnessAuto
+import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material.icons.outlined.TouchApp
+import androidx.compose.material.icons.outlined.Terminal
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,28 +59,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.defaulty.BuildConfig
 import app.defaulty.R
 import app.defaulty.data.preferences.ThemeMode
+import app.defaulty.ui.components.AdbCommandsDialog
+import app.defaulty.ui.components.DefaultyTopBar
 
 /**
  * Settings screen.
  *
- * Appearance: System / Light / Dark (radio buttons, persisted to DataStore).
- * Other: How it works · Privacy · Open-source licenses · GitHub · Version.
- *
- * Kept small per spec Section 12.
+ * Appearance: System / Light / Dark (radio buttons inside Card container, persisted to DataStore).
+ * About: How it works · ADB & Terminal Commands · Privacy · Source Code · Version.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = viewModel(),
@@ -64,19 +90,16 @@ fun SettingsScreen(
     val context = LocalContext.current
 
     var showHowItWorks by remember { mutableStateOf(false) }
+    var showAdbCommands by remember { mutableStateOf(false) }
     var showPrivacy by remember { mutableStateOf(false) }
-    var showLicenses by remember { mutableStateOf(false) }
-
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
         topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
-                scrollBehavior = scrollBehavior,
+            DefaultyTopBar(
+                title = stringResource(R.string.settings_title),
             )
         },
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -87,88 +110,155 @@ fun SettingsScreen(
             // --- Appearance section ---
             SectionTitle(stringResource(R.string.appearance))
 
-            Column(modifier = Modifier.selectableGroup()) {
-                ThemeOption(
-                    label = stringResource(R.string.theme_system),
-                    selected = themeMode == ThemeMode.SYSTEM,
-                    onClick = { viewModel.setThemeMode(ThemeMode.SYSTEM) },
-                )
-                ThemeOption(
-                    label = stringResource(R.string.theme_light),
-                    selected = themeMode == ThemeMode.LIGHT,
-                    onClick = { viewModel.setThemeMode(ThemeMode.LIGHT) },
-                )
-                ThemeOption(
-                    label = stringResource(R.string.theme_dark),
-                    selected = themeMode == ThemeMode.DARK,
-                    onClick = { viewModel.setThemeMode(ThemeMode.DARK) },
-                )
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(20.dp),
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f),
+                ),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                ),
+            ) {
+                Column(modifier = Modifier.selectableGroup()) {
+                    ThemeOptionItem(
+                        icon = Icons.Outlined.BrightnessAuto,
+                        label = stringResource(R.string.theme_system),
+                        subtitle = stringResource(R.string.theme_system_desc),
+                        selected = themeMode == ThemeMode.SYSTEM,
+                        onClick = { viewModel.setThemeMode(ThemeMode.SYSTEM) },
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 72.dp, end = 16.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f),
+                    )
+                    ThemeOptionItem(
+                        icon = Icons.Outlined.LightMode,
+                        label = stringResource(R.string.theme_light),
+                        subtitle = stringResource(R.string.theme_light_desc),
+                        selected = themeMode == ThemeMode.LIGHT,
+                        onClick = { viewModel.setThemeMode(ThemeMode.LIGHT) },
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 72.dp, end = 16.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f),
+                    )
+                    ThemeOptionItem(
+                        icon = Icons.Outlined.DarkMode,
+                        label = stringResource(R.string.theme_dark),
+                        subtitle = stringResource(R.string.theme_dark_desc),
+                        selected = themeMode == ThemeMode.DARK,
+                        onClick = { viewModel.setThemeMode(ThemeMode.DARK) },
+                    )
+                }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // --- Other section ---
-            SettingsItem(
-                title = stringResource(R.string.how_it_works),
-                onClick = { showHowItWorks = true },
-            )
-            SettingsItem(
-                title = stringResource(R.string.privacy),
-                onClick = { showPrivacy = true },
-            )
-            SettingsItem(
-                title = stringResource(R.string.open_source_licenses),
-                onClick = { showLicenses = true },
-            )
-            SettingsItem(
-                title = stringResource(R.string.github),
-                onClick = {
-                    val intent = Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse("https://github.com/tanvirr007/defaulty-app"),
+            // --- About section ---
+            SectionTitle(stringResource(R.string.about_section))
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(20.dp),
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f),
+                ),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                ),
+            ) {
+                Column {
+                    SettingsCardItem(
+                        icon = Icons.Outlined.HelpOutline,
+                        title = stringResource(R.string.how_it_works),
+                        subtitle = stringResource(R.string.how_it_works_subtitle),
+                        trailingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        onClick = { showHowItWorks = true },
                     )
-                    try {
-                        context.startActivity(intent)
-                    } catch (e: ActivityNotFoundException) {
-                        Toast.makeText(
-                            context,
-                            "No browser available to open this link.",
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                    }
-                },
-            )
-            SettingsItem(
-                title = stringResource(R.string.version_label),
-                subtitle = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
-                onClick = null,
-            )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 72.dp, end = 16.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f),
+                    )
+                    SettingsCardItem(
+                        icon = Icons.Outlined.Terminal,
+                        title = stringResource(R.string.adb_commands_title),
+                        subtitle = stringResource(R.string.adb_commands_subtitle),
+                        trailingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        onClick = { showAdbCommands = true },
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 72.dp, end = 16.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f),
+                    )
+                    SettingsCardItem(
+                        icon = Icons.Outlined.Shield,
+                        title = stringResource(R.string.privacy),
+                        subtitle = stringResource(R.string.privacy_subtitle),
+                        trailingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        onClick = { showPrivacy = true },
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 72.dp, end = 16.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f),
+                    )
+                    SettingsCardItem(
+                        icon = Icons.Outlined.Code,
+                        title = stringResource(R.string.source_code),
+                        subtitle = stringResource(R.string.source_code_subtitle),
+                        trailingIcon = Icons.AutoMirrored.Filled.OpenInNew,
+                        onClick = {
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("https://github.com/tanvirr007/defaulty-app"),
+                            )
+                            try {
+                                context.startActivity(intent)
+                            } catch (e: ActivityNotFoundException) {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.no_browser_found),
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            }
+                        },
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 72.dp, end = 16.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f),
+                    )
+                    SettingsCardItem(
+                        icon = Icons.Outlined.Info,
+                        title = stringResource(R.string.version_label),
+                        subtitle = stringResource(
+                            R.string.version_subtitle,
+                            BuildConfig.VERSION_NAME,
+                            BuildConfig.VERSION_CODE,
+                        ),
+                        onClick = null,
+                    )
+                }
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(28.dp))
         }
     }
 
     // --- Dialogs ---
     if (showHowItWorks) {
-        InfoDialog(
-            title = stringResource(R.string.how_it_works),
-            content = stringResource(R.string.how_it_works_content),
-            onDismiss = { showHowItWorks = false },
-        )
+        HowItWorksDialog(onDismiss = { showHowItWorks = false })
+    }
+    if (showAdbCommands) {
+        AdbCommandsDialog(onDismiss = { showAdbCommands = false })
     }
     if (showPrivacy) {
-        InfoDialog(
-            title = stringResource(R.string.privacy),
-            content = stringResource(R.string.privacy_content),
-            onDismiss = { showPrivacy = false },
-        )
-    }
-    if (showLicenses) {
-        InfoDialog(
-            title = stringResource(R.string.open_source_licenses),
-            content = stringResource(R.string.licenses_content),
-            onDismiss = { showLicenses = false },
-        )
+        PrivacyDialog(onDismiss = { showPrivacy = false })
     }
 }
 
@@ -177,16 +267,19 @@ private fun SectionTitle(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 20.dp, vertical = 10.dp)
             .semantics { heading() },
     )
 }
 
 @Composable
-private fun ThemeOption(
+private fun ThemeOptionItem(
+    icon: ImageVector,
     label: String,
+    subtitle: String,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
@@ -198,22 +291,58 @@ private fun ThemeOption(
                 role = Role.RadioButton,
                 onClick = onClick,
             )
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RadioButton(selected = selected, onClick = null) // Click handled by Row
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(
+                    color = if (selected) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHigh
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (selected) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                modifier = Modifier.size(22.dp),
+            )
+        }
         Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        RadioButton(selected = selected, onClick = null)
     }
 }
 
 @Composable
-private fun SettingsItem(
+private fun SettingsCardItem(
+    icon: ImageVector,
     title: String,
     subtitle: String? = null,
+    trailingIcon: ImageVector? = null,
     onClick: (() -> Unit)?,
 ) {
     val modifier = if (onClick != null) {
@@ -224,37 +353,313 @@ private fun SettingsItem(
         Modifier.fillMaxWidth()
     }
 
-    Column(
+    Row(
         modifier = modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-        )
-        if (subtitle != null) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = RoundedCornerShape(12.dp),
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(22.dp),
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        if (trailingIcon != null) {
+            Spacer(modifier = Modifier.width(12.dp))
+            Icon(
+                imageVector = trailingIcon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp),
             )
         }
     }
 }
 
 @Composable
-private fun InfoDialog(
-    title: String,
-    content: String,
-    onDismiss: () -> Unit,
-) {
+private fun HowItWorksDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = { Text(content) },
+        shape = RoundedCornerShape(28.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        icon = {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(16.dp),
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.HelpOutline,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+        },
+        title = {
+            Text(
+                text = stringResource(R.string.how_it_works),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+            ) {
+                Text(
+                    text = stringResource(R.string.how_it_works_intro),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 20.sp,
+                    modifier = Modifier.padding(bottom = 14.dp),
+                )
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    border = BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                    ),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    ),
+                ) {
+                    Column {
+                        DialogSectionItem(
+                            icon = Icons.Outlined.Security,
+                            title = stringResource(R.string.how_it_works_point1_title),
+                            description = stringResource(R.string.how_it_works_point1_desc),
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        )
+                        DialogSectionItem(
+                            icon = Icons.Outlined.TouchApp,
+                            title = stringResource(R.string.how_it_works_point2_title),
+                            description = stringResource(R.string.how_it_works_point2_desc),
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        )
+                        DialogSectionItem(
+                            icon = Icons.Outlined.Sync,
+                            title = stringResource(R.string.how_it_works_point3_title),
+                            description = stringResource(R.string.how_it_works_point3_desc),
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        )
+                        DialogSectionItem(
+                            icon = Icons.Outlined.Terminal,
+                            title = stringResource(R.string.how_it_works_point4_title),
+                            description = stringResource(R.string.how_it_works_point4_desc),
+                        )
+                    }
+                }
+            }
+        },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.close))
+            Button(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(46.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.close),
+                    fontWeight = FontWeight.SemiBold,
+                )
             }
         },
     )
+}
+
+@Composable
+private fun PrivacyDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(28.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        icon = {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(16.dp),
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Shield,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+        },
+        title = {
+            Text(
+                text = stringResource(R.string.privacy),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+            ) {
+                Text(
+                    text = stringResource(R.string.privacy_intro),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 20.sp,
+                    modifier = Modifier.padding(bottom = 14.dp),
+                )
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    border = BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                    ),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    ),
+                ) {
+                    Column {
+                        DialogSectionItem(
+                            icon = Icons.Outlined.WifiOff,
+                            title = stringResource(R.string.privacy_point1_title),
+                            description = stringResource(R.string.privacy_point1_desc),
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        )
+                        DialogSectionItem(
+                            icon = Icons.Outlined.VisibilityOff,
+                            title = stringResource(R.string.privacy_point2_title),
+                            description = stringResource(R.string.privacy_point2_desc),
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        )
+                        DialogSectionItem(
+                            icon = Icons.Outlined.Storage,
+                            title = stringResource(R.string.privacy_point3_title),
+                            description = stringResource(R.string.privacy_point3_desc),
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        )
+                        DialogSectionItem(
+                            icon = Icons.Outlined.Android,
+                            title = stringResource(R.string.privacy_point4_title),
+                            description = stringResource(R.string.privacy_point4_desc),
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(46.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.close),
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+        },
+    )
+}
+
+@Composable
+private fun DialogSectionItem(
+    icon: ImageVector,
+    title: String,
+    description: String,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                    shape = RoundedCornerShape(10.dp),
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+        Spacer(modifier = Modifier.width(14.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 17.sp,
+            )
+        }
+    }
 }

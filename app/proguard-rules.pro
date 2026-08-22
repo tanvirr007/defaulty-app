@@ -8,3 +8,8 @@
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
+
+# Shizuku
+-keep class * extends rikka.shizuku.ShizukuProvider { *; }
+-keep class rikka.shizuku.** { *; }
+-keep class dev.rikka.shizuku.** { *; }

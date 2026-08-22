@@ -7,19 +7,65 @@
 
     <!-- Home screen -->
     <string name="your_defaults">Your defaults</string>
-    <string name="other_defaults">Other supported defaults</string>
+    <string name="other_defaults">Others</string>
+    <string name="other_defaults_subtitle">Media, files &amp; additional system defaults</string>
+    <string name="section_media_defaults">Media &amp; files</string>
+    <string name="section_system_roles">Additional system roles</string>
     <string name="opening_links">Opening links</string>
     <string name="opening_links_subtitle">Manage app links</string>
     <string name="no_default_set">No default set</string>
 
+    <!-- Media Handler types -->
+    <string name="media_video_player">Video Player</string>
+    <string name="media_video_player_desc">playing videos</string>
+    <string name="media_gallery">Gallery &amp; Photos</string>
+    <string name="media_gallery_desc">viewing photos and images</string>
+    <string name="media_music_player">Music Player</string>
+    <string name="media_music_player_desc">playing music and audio</string>
+    <string name="media_pdf_viewer">PDF Viewer</string>
+    <string name="media_pdf_viewer_desc">viewing PDF documents</string>
+    <string name="media_email">Email</string>
+    <string name="media_email_desc">sending emails</string>
+    <string name="media_test_choose">Open with… (Set default)</string>
+    <string name="media_test_choose_desc">Triggers the Android app chooser so you can select your default.</string>
+    <string name="media_no_default_set">No default set — Android prompts you to choose an app.</string>
+    <string name="media_open_with_prompt">Choose an app</string>
+
+    <!-- Roles descriptions -->
+    <string name="role_notes">Notes</string>
+    <string name="role_notes_desc">taking notes</string>
+    <string name="role_wallet">Wallet</string>
+    <string name="role_wallet_desc">wallet and contactless payments</string>
+    <string name="role_emergency">Emergency</string>
+    <string name="role_emergency_desc">emergency assistance</string>
+
     <!-- Details screen -->
     <string name="default_role_title">Default %1$s</string>
+    <string name="default_role_subtitle">Choose which app Android should use for %1$s</string>
     <string name="current_default">%1$s — currently your default %2$s.</string>
     <string name="no_current_default">No app is set as the default for %1$s.</string>
     <string name="change_default">Change default</string>
+    <string name="change_default_in_settings">Change default in Android Settings</string>
     <string name="change_default_description">Choose which app Android should use for %1$s.</string>
+    <string name="installed_candidate_apps">Compatible installed apps</string>
+    <string name="installed_candidate_apps_count">Compatible installed apps (%1$d)</string>
+    <string name="select_app_hint">Select an app below to set it as default</string>
+    <string name="set_as_default">Set as default</string>
+    <string name="apply_default">Apply default</string>
+    <string name="apply_as_default_role">Set as default %1$s</string>
+    <string name="apply_as_default_media">Set as default %1$s</string>
+    <string name="prompt_select_in_system">Confirm selection in Android Settings</string>
+    <string name="badge_active_default">Default</string>
+    <string name="badge_selected">Selected</string>
+    <string name="open_app_info">App info</string>
+    <string name="open_link_handling">Supported links</string>
+    <string name="launch_app">Open app</string>
+    <string name="action_info">Info</string>
+    <string name="action_links">Links</string>
+    <string name="action_open">Open</string>
     <string name="unable_to_open_settings">Unable to open system settings. Please change this default from Android Settings.</string>
     <string name="no_apps_available">No compatible apps are installed for this role.</string>
+    <string name="no_compatible_apps_found">No compatible apps found on this device.</string>
 
     <!-- Opening Links screen -->
     <string name="opening_links_title">Opening links</string>
@@ -31,39 +77,93 @@
     <!-- Settings screen -->
     <string name="settings_title">Settings</string>
     <string name="appearance">Appearance</string>
-    <string name="theme_system">System</string>
-    <string name="theme_light">Light</string>
-    <string name="theme_dark">Dark</string>
+    <string name="theme_system">System default</string>
+    <string name="theme_system_desc">Follow system theme</string>
+    <string name="theme_light">Light theme</string>
+    <string name="theme_light_desc">Use standard bright appearance</string>
+    <string name="theme_dark">Dark theme</string>
+    <string name="theme_dark_desc">Reduce glare and conserve battery</string>
+    <string name="about_section">About</string>
     <string name="how_it_works">How it works</string>
-    <string name="privacy">Privacy</string>
-    <string name="open_source_licenses">Open-source licenses</string>
-    <string name="github">GitHub</string>
+    <string name="how_it_works_subtitle">How default app roles work</string>
+    <string name="privacy">Privacy &amp; security</string>
+    <string name="privacy_subtitle">Zero data collection</string>
+    <string name="source_code">Source Code</string>
+    <string name="source_code_subtitle">View on GitHub</string>
     <string name="version_label">Version</string>
+    <string name="version_subtitle">v%1$s (Build %2$d)</string>
     <string name="close">Close</string>
+    <string name="no_browser_found">No browser available to open this link.</string>
 
-    <!-- How it works content -->
-    <string name="how_it_works_content">Android controls which apps are set as your defaults. When you change a default, Android shows its own confirmation screen.\n\nSome changes require Android\'s system interface — this is by design to protect your preferences.\n\nDefaulty helps you view and manage your defaults, but the actual changes are always handled securely by Android itself.</string>
+    <!-- How it works dialog -->
+    <string name="how_it_works_intro">Defaulty makes it easy to view and manage default apps while adhering to Android\'s security architecture.</string>
+    <string name="how_it_works_point1_title">System security model</string>
+    <string name="how_it_works_point1_desc">Default apps are managed strictly by Android. No third-party app can change your defaults without your consent.</string>
+    <string name="how_it_works_point2_title">Native confirmation prompts</string>
+    <string name="how_it_works_point2_desc">When changing a default, Android displays its official dialog so you remain in full control.</string>
+    <string name="how_it_works_point3_title">Live system discovery</string>
+    <string name="how_it_works_point3_desc">Defaulty queries system RoleManager and App Link APIs in real time to reflect your latest settings accurately.</string>
 
-    <!-- Privacy content -->
-    <string name="privacy_content">Defaulty is 100%% offline. It doesn\'t collect, store, or transmit any personal data.\n\nNo analytics. No tracking. No ads. No network access.\n\nAll information is read directly from Android\'s built-in APIs and stays on your device.</string>
-
-    <!-- Licenses content -->
-    <string name="licenses_content">Defaulty uses the following open-source libraries:\n\n• Jetpack Compose — Apache License 2.0\n• Material 3 — Apache License 2.0\n• AndroidX Navigation — Apache License 2.0\n• AndroidX DataStore — Apache License 2.0\n• AndroidX Core SplashScreen — Apache License 2.0</string>
+    <!-- Privacy dialog -->
+    <string name="privacy_intro">Defaulty is built with a strict privacy-first approach to keep your device and data completely safe.</string>
+    <string name="privacy_point1_title">Zero internet access</string>
+    <string name="privacy_point1_desc">Defaulty does not request internet permission. Your data never leaves your device under any circumstance.</string>
+    <string name="privacy_point2_title">No trackers or telemetry</string>
+    <string name="privacy_point2_desc">No analytics SDKs, advertising IDs, crashlytics, or third-party tracking tools are present.</string>
+    <string name="privacy_point3_title">On-device storage only</string>
+    <string name="privacy_point3_desc">Preferences such as your theme choice are stored locally on your device using DataStore.</string>
+    <string name="privacy_point4_title">Official Android APIs</string>
+    <string name="privacy_point4_desc">All app and role queries use standard public Android framework APIs with zero root access needed.</string>
 
     <!-- Onboarding -->
     <string name="onboarding_welcome_title">Welcome to Defaulty</string>
-    <string name="onboarding_welcome_description">A simple utility for viewing and managing your Android default applications.</string>
+    <string name="onboarding_welcome_description">A simple utility for viewing and managing your Android default applications</string>
     <string name="onboarding_how_title">How it works</string>
-    <string name="onboarding_how_description">Android controls which apps handle things like web browsing, phone calls, and messages.\n\nWhen you change a default, Android will show its own confirmation screen. This is normal — it\'s how Android keeps your choices secure.</string>
+    <string name="onboarding_how_description">Use Standard Mode via Android Settings, or ADB/Shizuku Mode for instant 1-tap apply</string>
+    <string name="onboarding_mode_title">Choose Apply Mode</string>
+    <string name="onboarding_mode_description">Select how you prefer Defaulty to apply default app changes:</string>
+    <string name="onboarding_mode_standard">Standard Mode</string>
+    <string name="onboarding_mode_standard_desc">Opens Android System Settings (Zero setup required)</string>
+    <string name="onboarding_mode_shizuku">ADB / Shizuku Mode</string>
+    <string name="onboarding_mode_shizuku_desc">1-Tap Apply with confirmation toast (Requires Shizuku)</string>
     <string name="onboarding_appearance_title">Choose your look</string>
-    <string name="onboarding_appearance_description">Select your preferred theme. You can always change this later in Settings.</string>
     <string name="onboarding_ready_title">You\'re all set!</string>
-    <string name="onboarding_ready_description">Tap below to start managing your default apps.</string>
     <string name="next">Next</string>
     <string name="back">Back</string>
     <string name="get_started">Get started</string>
 
+    <!-- Power user & ADB commands -->
+    <string name="adb_commands_title">Apply Modes</string>
+    <string name="adb_commands_subtitle">Standard vs 1-Tap ADB / Shizuku Mode</string>
+    <string name="adb_commands_intro">Defaulty supports two ways to manage defaults on Android:</string>
+    <string name="apply_done">Done</string>
+    <string name="copy_adb_command">Copy ADB command</string>
+    <string name="copy_command">Copy</string>
+    <string name="adb_command_copied">Command copied to clipboard</string>
+    <string name="mode_standard_title">Standard Mode (Zero Setup)</string>
+    <string name="mode_standard_desc">Opens Android System Settings page. User taps app in settings -> Returns.</string>
+    <string name="mode_shizuku_title">ADB / Shizuku Mode (Setup Wizard)</string>
+    <string name="mode_shizuku_desc">Connects to on-device ADB shell service. 1-Tap \'Apply\' -> Toast \'Done\' instantly (zero extra steps).</string>
+    <string name="shizuku_active_badge">1-Tap Active</string>
+    <string name="shizuku_setup_button">Enable 1-Tap Apply</string>
+    <string name="view_all_adb_commands">View commands</string>
+    <string name="how_it_works_point4_title">ADB / Shizuku Mode</string>
+    <string name="how_it_works_point4_desc">Enable Shizuku or wireless debugging to set defaults with a single tap and confirmation toast.</string>
+    <string name="shizuku_guide_title">How to Enable 1-Tap Apply</string>
+    <string name="shizuku_guide_step1_title">1. Install Shizuku</string>
+    <string name="shizuku_guide_step1_desc">Download Shizuku from Play Store or GitHub (free &amp; open-source).</string>
+    <string name="shizuku_guide_step2_title">2. Start via Wireless Debugging</string>
+    <string name="shizuku_guide_step2_desc">Enable Wireless Debugging in Developer Options and tap Start in Shizuku (no PC or root needed).</string>
+    <string name="shizuku_guide_step3_title">3. Authorize Defaulty</string>
+    <string name="shizuku_guide_step3_desc">Allow Defaulty access to ADB shell so it can apply defaults instantly with a single tap.</string>
+    <string name="btn_open_shizuku">Open Shizuku</string>
+    <string name="btn_open_dev_options">Developer Options</string>
+    <string name="btn_authorize">Authorize</string>
+    <string name="shizuku_active_banner_title">1-Tap ADB Mode Active</string>
+    <string name="shizuku_active_banner_desc">Shizuku is running and authorized. When you tap \'Apply default\', Defaulty will switch defaults directly in the background and confirm with \'Done\'.</string>
+
     <!-- Content descriptions -->
     <string name="cd_app_icon">%1$s app icon</string>
     <string name="cd_navigate_back">Navigate back</string>
+    <string name="cd_copy_command">Copy command to clipboard</string>
 </resources>

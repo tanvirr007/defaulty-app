@@ -1,4 +1,4 @@
-package app.defaulty.ui.home
+package app.defaulty.ui.others
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,8 +8,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,25 +29,29 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.defaulty.R
+import app.defaulty.domain.model.MediaHandlerType
 import app.defaulty.domain.model.SupportedRole
 import app.defaulty.ui.components.DefaultAppRow
 import app.defaulty.ui.components.DefaultyTopBar
+import app.defaulty.ui.home.HomeViewModel
 
 /**
- * Main dashboard screen.
- * Displays high-frequency "Your defaults" (Browser, Phone, SMS, Launcher, Assistant)
- * and a dedicated entry row for "Others" leading to the full OthersScreen.
+ * Dedicated full-view screen for "Others" defaults.
+ * Categorizes Media & File handlers, secondary Android system roles,
+ * and deep link / app link management.
  */
 @Composable
-fun HomeScreen(
+fun OthersScreen(
     onNavigateToDetails: (SupportedRole) -> Unit,
-    onNavigateToOthers: () -> Unit,
+    onNavigateToMediaDetails: (MediaHandlerType) -> Unit,
+    onNavigateToLinks: () -> Unit,
+    onNavigateBack: () -> Unit,
     viewModel: HomeViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Refresh on resume — detect changes made externally
+    // Refresh on resume to reflect external changes immediately
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -58,12 +65,20 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             DefaultyTopBar(
-                title = stringResource(R.string.app_name),
+                title = stringResource(R.string.other_defaults),
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.cd_navigate_back),
+                        )
+                    }
+                },
             )
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
-        if (uiState.isLoading && uiState.primaryDefaults.isEmpty()) {
+        if (uiState.isLoading && !uiState.hasOtherContent) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -79,36 +94,55 @@ fun HomeScreen(
                     .padding(innerPadding),
                 contentPadding = PaddingValues(bottom = 16.dp),
             ) {
-                // Section 1: "Your defaults" (Primary)
-                if (uiState.primaryDefaults.isNotEmpty()) {
-                    item(key = "header_primary") {
-                        SectionHeader(text = stringResource(R.string.your_defaults))
+                // Section 1: Media & File Defaults (Video, Gallery, Music, PDF, Email)
+                if (uiState.mediaDefaults.isNotEmpty()) {
+                    item(key = "header_media") {
+                        SectionHeader(text = stringResource(R.string.section_media_defaults))
                     }
                     items(
-                        items = uiState.primaryDefaults,
+                        items = uiState.mediaDefaults,
+                        key = { "media_${it.type.id}" },
+                    ) { info ->
+                        DefaultAppRow(
+                            roleIcon = info.type.icon,
+                            roleLabel = stringResource(info.type.displayLabelRes),
+                            appName = info.holderAppLabel ?: stringResource(R.string.no_default_set),
+                            appIcon = info.holderAppIcon,
+                            onClick = { onNavigateToMediaDetails(info.type) },
+                        )
+                    }
+                }
+
+                // Section 2: Additional System Roles (Notes, Wallet, Emergency, Call Screening, etc.)
+                if (uiState.otherRoleDefaults.isNotEmpty()) {
+                    item(key = "header_roles") {
+                        SectionHeader(text = stringResource(R.string.section_system_roles))
+                    }
+                    items(
+                        items = uiState.otherRoleDefaults,
                         key = { "role_${it.role.roleName}" },
                     ) { info ->
                         DefaultAppRow(
                             roleIcon = info.role.icon,
                             roleLabel = info.role.displayLabel,
-                            appName = info.holderAppLabel,
+                            appName = info.holderAppLabel ?: stringResource(R.string.no_default_set),
                             appIcon = info.holderAppIcon,
                             onClick = { onNavigateToDetails(info.role) },
                         )
                     }
                 }
 
-                // Section 2: "Others" Hub
-                item(key = "header_others") {
-                    SectionHeader(text = stringResource(R.string.other_defaults))
+                // Section 3: "Opening links" entry
+                item(key = "header_links") {
+                    SectionHeader(text = stringResource(R.string.opening_links))
                 }
-                item(key = "others_entry") {
+                item(key = "opening_links") {
                     DefaultAppRow(
-                        roleIcon = Icons.Default.Category,
-                        roleLabel = stringResource(R.string.other_defaults),
-                        appName = stringResource(R.string.other_defaults_subtitle),
+                        roleIcon = Icons.Default.Link,
+                        roleLabel = stringResource(R.string.opening_links),
+                        appName = stringResource(R.string.opening_links_subtitle),
                         appIcon = null,
-                        onClick = onNavigateToOthers,
+                        onClick = onNavigateToLinks,
                     )
                 }
             }

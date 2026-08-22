@@ -39,6 +39,7 @@ fun DefaultAppRow(
     modifier: Modifier = Modifier,
 ) {
     Surface(
+        color = MaterialTheme.colorScheme.surface,
         modifier = modifier
             .fillMaxWidth()
             .clickable(
@@ -57,7 +58,7 @@ fun DefaultAppRow(
                 imageVector = roleIcon,
                 contentDescription = null, // Decorative; label is in text
                 modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = MaterialTheme.colorScheme.primary,
             )
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -77,6 +78,7 @@ fun DefaultAppRow(
                 Text(
                     text = roleLabel,
                     style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
                     text = appName ?: stringResource(R.string.no_default_set),

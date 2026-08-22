@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -33,80 +32,66 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.defaulty.R
-import app.defaulty.data.system.ShizukuManager
-import app.defaulty.domain.model.SupportedRole
-import app.defaulty.ui.components.AdbCommandsDialog
+import app.defaulty.domain.model.MediaHandlerType
 import app.defaulty.ui.components.AppIcon
 import app.defaulty.ui.components.CandidateAppCard
 import app.defaulty.ui.components.DefaultyTopBar
-import kotlinx.coroutines.launch
 
 /**
- * Default App Details screen.
+ * Media & File Handler Details screen.
  *
- * Shows the current default for a role and provides an interactive "Mark & Apply"
- * candidate app selection list with dual apply methods (Android Settings & ADB shell).
+ * Shows the current default for a media/file category (e.g. Video Player, Gallery)
+ * and provides an interactive "Mark & Apply" candidate app selection list with
+ * animated bottom action bar.
  */
 @Composable
-fun DefaultAppDetailsScreen(
-    role: SupportedRole,
+fun MediaHandlerDetailsScreen(
+    type: MediaHandlerType,
     onNavigateBack: () -> Unit,
 ) {
     val context = LocalContext.current
-    val clipboardManager = LocalClipboardManager.current
     val application = context.applicationContext as Application
-    val viewModel: DefaultAppDetailsViewModel = viewModel(
-        factory = DefaultAppDetailsViewModel.Factory(application, role),
+    val viewModel: MediaHandlerDetailsViewModel = viewModel(
+        factory = MediaHandlerDetailsViewModel.Factory(application, type),
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
 
     val activeDefaultPackage = uiState.defaultApp?.holderPackageName
-    var selectedPackage by rememberSaveable(role.roleName) {
+    var selectedPackage by rememberSaveable(type.id) {
         mutableStateOf<String?>(null)
     }
-    var showAdbDialog by remember { mutableStateOf(false) }
 
     val effectiveSelectedPackage = selectedPackage ?: activeDefaultPackage
     val candidateApps = uiState.candidateApps
@@ -114,14 +99,7 @@ fun DefaultAppDetailsScreen(
     val isNonDefaultSelected = effectiveSelectedPackage != null &&
         effectiveSelectedPackage != activeDefaultPackage
 
-    if (showAdbDialog) {
-        AdbCommandsDialog(
-            role = role,
-            onDismiss = { showAdbDialog = false }
-        )
-    }
-
-    // Re-query after returning from system UI (Product Rule 11)
+    // Re-query after returning from system UI
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -132,23 +110,23 @@ fun DefaultAppDetailsScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // Launcher for the role-change system UI
-    val roleChangeLauncher = rememberLauncherForActivityResult(
+    // Launcher for the chooser
+    val chooserLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
     ) {
-        // Re-query actual state when returning
         viewModel.refresh()
     }
 
-    val launchRoleChange: (String?, String?) -> Unit = { _, _ ->
-        val intent = viewModel.getChangeDefaultIntent()
+    val launchChooser: (String?, String?) -> Unit = { _, _ ->
+        val promptTitle = context.getString(R.string.media_open_with_prompt)
+        val intent = viewModel.getMediaChooserIntent(promptTitle)
         try {
             Toast.makeText(
                 context,
                 context.getString(R.string.prompt_select_in_system),
                 Toast.LENGTH_SHORT,
             ).show()
-            roleChangeLauncher.launch(intent)
+            chooserLauncher.launch(intent)
         } catch (e: ActivityNotFoundException) {
             val fallback = viewModel.getFallbackSettingsIntent()
             if (fallback != null) {
@@ -180,7 +158,7 @@ fun DefaultAppDetailsScreen(
     Scaffold(
         topBar = {
             DefaultyTopBar(
-                title = role.displayLabel,
+                title = stringResource(type.displayLabelRes),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -189,25 +167,16 @@ fun DefaultAppDetailsScreen(
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = { showAdbDialog = true }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Terminal,
-                            contentDescription = stringResource(R.string.adb_commands_title),
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                },
             )
         },
         bottomBar = {
             AnimatedVisibility(
-                visible = isNonDefaultSelected,
+                visible = isNonDefaultSelected && selectedCandidate != null,
                 enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                 exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
             ) {
                 Surface(
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                     shadowElevation = 8.dp,
                     tonalElevation = 6.dp,
@@ -247,8 +216,8 @@ fun DefaultAppDetailsScreen(
                                 )
                                 Text(
                                     text = stringResource(
-                                        R.string.apply_as_default_role,
-                                        role.displayLabel,
+                                        R.string.apply_as_default_media,
+                                        stringResource(type.displayLabelRes),
                                     ),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -257,55 +226,13 @@ fun DefaultAppDetailsScreen(
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.width(6.dp))
-                        val candidateCmd = selectedCandidate?.packageName?.let { role.getAdbCommand(it) }
-                            ?: role.getAdbCommand("<package_name>")
-                        IconButton(
-                            onClick = {
-                                clipboardManager.setText(AnnotatedString(candidateCmd))
-                                Toast.makeText(
-                                    context,
-                                    context.getString(R.string.adb_command_copied),
-                                    Toast.LENGTH_SHORT,
-                                ).show()
-                            },
-                            modifier = Modifier.size(38.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.ContentCopy,
-                                contentDescription = stringResource(R.string.copy_adb_command),
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(20.dp),
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(6.dp))
-                        val coroutineScope = rememberCoroutineScope()
+                        Spacer(modifier = Modifier.width(12.dp))
                         Button(
                             onClick = {
-                                val targetPkg = selectedCandidate?.packageName
-                                if (targetPkg != null && ShizukuManager.hasShizukuPermission()) {
-                                    coroutineScope.launch {
-                                        val success = viewModel.applyDefaultViaShizuku(targetPkg)
-                                        if (success) {
-                                            Toast.makeText(
-                                                context,
-                                                context.getString(R.string.apply_done),
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
-                                            selectedPackage = null
-                                        } else {
-                                            launchRoleChange(
-                                                targetPkg,
-                                                selectedCandidate?.appLabel,
-                                            )
-                                        }
-                                    }
-                                } else {
-                                    launchRoleChange(
-                                        selectedCandidate?.packageName,
-                                        selectedCandidate?.appLabel,
-                                    )
-                                }
+                                launchChooser(
+                                    selectedCandidate?.packageName,
+                                    selectedCandidate?.appLabel,
+                                )
                             },
                             shape = RoundedCornerShape(12.dp),
                         ) {
@@ -360,7 +287,7 @@ fun DefaultAppDetailsScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = role.icon,
+                                    imageVector = type.icon,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(24.dp),
@@ -370,14 +297,20 @@ fun DefaultAppDetailsScreen(
                         Spacer(modifier = Modifier.width(14.dp))
                         Column {
                             Text(
-                                text = stringResource(R.string.default_role_title, role.displayLabel),
+                                text = stringResource(
+                                    R.string.default_role_title,
+                                    stringResource(type.displayLabelRes),
+                                ),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.semantics { heading() },
                             )
                             Text(
-                                text = stringResource(R.string.change_default_description, role.description),
+                                text = stringResource(
+                                    R.string.change_default_description,
+                                    stringResource(type.descriptionRes),
+                                ),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -472,133 +405,13 @@ fun DefaultAppDetailsScreen(
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
-                                    text = stringResource(R.string.no_current_default, role.description),
+                                    text = stringResource(
+                                        R.string.no_current_default,
+                                        stringResource(type.descriptionRes),
+                                    ),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
-                            }
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 2-Mode Apply Card (Standard vs ADB / Shizuku)
-            val isShizukuActive = ShizukuManager.hasShizukuPermission()
-
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                ),
-                border = BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-                ),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                modifier = Modifier.size(32.dp),
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Terminal,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = stringResource(R.string.adb_commands_title),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-
-                        if (isShizukuActive) {
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.shizuku_active_badge),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Mode 1: Standard Mode (Zero Setup)
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.4f),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text(
-                                text = stringResource(R.string.mode_standard_title),
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = stringResource(R.string.mode_standard_desc),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Mode 2: ADB / Shizuku Mode (Setup Wizard)
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.4f),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text(
-                                text = stringResource(R.string.mode_shizuku_title),
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = stringResource(R.string.mode_shizuku_desc),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-
-                            if (!isShizukuActive && ShizukuManager.isShizukuAvailable()) {
-                                Spacer(modifier = Modifier.height(10.dp))
-                                OutlinedButton(
-                                    onClick = { ShizukuManager.requestPermission() },
-                                    shape = RoundedCornerShape(8.dp),
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    Text(stringResource(R.string.shizuku_setup_button))
-                                }
                             }
                         }
                     }

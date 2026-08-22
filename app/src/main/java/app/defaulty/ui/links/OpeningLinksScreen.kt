@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,15 +18,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -43,17 +43,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import app.defaulty.R
 import app.defaulty.domain.model.LinkHandlingAppInfo
 import app.defaulty.ui.components.AppIcon
+import app.defaulty.ui.components.DefaultyTopBar
 
 /**
- * Opening Links screen.
- *
- * Lists installed apps with domain verification configured.
- * Each row shows the app, its verified domains, and link-handling status.
- * Tapping opens Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS for that app.
- *
- * Re-queries DomainVerificationManager on ON_RESUME (Spec Section 10).
+ * Screen displaying apps with declared deep link domains (Spec Section 8).
+ * Tap an app to open system Open by default settings.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OpeningLinksScreen(
     onNavigateBack: () -> Unit,
@@ -63,6 +58,7 @@ fun OpeningLinksScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    // Refresh link status when returning from system settings (Spec Section 8)
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -75,8 +71,8 @@ fun OpeningLinksScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.opening_links_title)) },
+            DefaultyTopBar(
+                title = stringResource(R.string.opening_links_title),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -87,9 +83,10 @@ fun OpeningLinksScreen(
                 },
             )
         },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         when {
-            uiState.isLoading -> {
+            uiState.isLoading && uiState.apps.isEmpty() -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -167,6 +164,7 @@ private fun LinkAppRow(
     onClick: () -> Unit,
 ) {
     Surface(
+        color = MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .fillMaxWidth()
             .clickable(role = Role.Button, onClick = onClick),
@@ -189,6 +187,7 @@ private fun LinkAppRow(
                 Text(
                     text = app.appLabel,
                     style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 Spacer(modifier = Modifier.height(2.dp))
@@ -219,6 +218,12 @@ private fun LinkAppRow(
                     )
                 }
             }
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

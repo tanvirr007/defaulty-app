@@ -3,7 +3,10 @@ package app.defaulty.domain.model
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PhoneCallback
 import androidx.compose.material.icons.automirrored.filled.PhoneForwarded
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Assistant
+import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.Emergency
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Phone
@@ -30,6 +33,7 @@ enum class SupportedRole(
     val icon: ImageVector,
     val isPrimary: Boolean,
     val description: String,
+    val sortOrder: Int,
 ) {
     BROWSER(
         roleName = "android.app.role.BROWSER",
@@ -37,6 +41,7 @@ enum class SupportedRole(
         icon = Icons.Default.Language,
         isPrimary = true,
         description = "web browsing",
+        sortOrder = 1,
     ),
     PHONE(
         roleName = "android.app.role.DIALER",
@@ -44,6 +49,7 @@ enum class SupportedRole(
         icon = Icons.Default.Phone,
         isPrimary = true,
         description = "phone calls",
+        sortOrder = 2,
     ),
     SMS(
         roleName = "android.app.role.SMS",
@@ -51,13 +57,15 @@ enum class SupportedRole(
         icon = Icons.Default.Sms,
         isPrimary = true,
         description = "messaging",
+        sortOrder = 3,
     ),
     HOME(
         roleName = "android.app.role.HOME",
-        displayLabel = "Home / Launcher",
+        displayLabel = "Launcher",
         icon = Icons.Default.Home,
         isPrimary = true,
-        description = "your home screen",
+        description = "your launcher",
+        sortOrder = 4,
     ),
     ASSISTANT(
         roleName = "android.app.role.ASSISTANT",
@@ -65,6 +73,23 @@ enum class SupportedRole(
         icon = Icons.Default.Assistant,
         isPrimary = true,
         description = "digital assistant",
+        sortOrder = 5,
+    ),
+    NOTES(
+        roleName = "android.app.role.NOTES",
+        displayLabel = "Notes",
+        icon = Icons.Default.EditNote,
+        isPrimary = false,
+        description = "taking notes",
+        sortOrder = 6,
+    ),
+    WALLET(
+        roleName = "android.app.role.WALLET",
+        displayLabel = "Wallet",
+        icon = Icons.Default.AccountBalanceWallet,
+        isPrimary = false,
+        description = "wallet and contactless payments",
+        sortOrder = 7,
     ),
     CALL_SCREENING(
         roleName = "android.app.role.CALL_SCREENING",
@@ -72,6 +97,7 @@ enum class SupportedRole(
         icon = Icons.AutoMirrored.Filled.PhoneCallback,
         isPrimary = false,
         description = "call screening and caller ID",
+        sortOrder = 8,
     ),
     CALL_REDIRECTION(
         roleName = "android.app.role.CALL_REDIRECTION",
@@ -79,11 +105,27 @@ enum class SupportedRole(
         icon = Icons.AutoMirrored.Filled.PhoneForwarded,
         isPrimary = false,
         description = "outgoing call redirection",
+        sortOrder = 9,
     ),
-    // Future roles: add one entry here per new RoleManager role.
-    // The capability layer probes isRoleAvailable() at runtime,
-    // and the UI automatically discovers and displays available roles.
-    ;
+    EMERGENCY(
+        roleName = "android.app.role.EMERGENCY",
+        displayLabel = "Emergency",
+        icon = Icons.Default.Emergency,
+        isPrimary = false,
+        description = "emergency assistance",
+        sortOrder = 10,
+    );
+
+    /**
+     * Generate standard ADB shell command to assign this role to a given package name.
+     */
+    fun getAdbCommand(packageName: String): String {
+        return if (this == HOME) {
+            "cmd role add-role-holder android.app.role.HOME $packageName 0"
+        } else {
+            "cmd role add-role-holder $roleName $packageName 0"
+        }
+    }
 
     companion object {
         /** Look up a role by its Android role name string. */

@@ -37,7 +37,9 @@ class OpeningLinksViewModel(application: Application) : AndroidViewModel(applica
     /** Re-query link handling apps. Called on ON_RESUME. */
     fun refresh() {
         viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update { it.copy(isLoading = true) }
+            if (_uiState.value.apps.isEmpty()) {
+                _uiState.update { it.copy(isLoading = true) }
+            }
             val apps = repository.getLinkHandlingApps()
             _uiState.update {
                 LinksUiState(apps = apps, isLoading = false)

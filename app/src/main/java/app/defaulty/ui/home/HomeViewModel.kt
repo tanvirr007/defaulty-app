@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.defaulty.DefaultyApp
 import app.defaulty.domain.model.DefaultAppInfo
+import app.defaulty.domain.model.MediaDefaultAppInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,14 +15,18 @@ import kotlinx.coroutines.launch
 
 data class HomeUiState(
     val primaryDefaults: List<DefaultAppInfo> = emptyList(),
-    val otherDefaults: List<DefaultAppInfo> = emptyList(),
+    val otherRoleDefaults: List<DefaultAppInfo> = emptyList(),
+    val mediaDefaults: List<MediaDefaultAppInfo> = emptyList(),
     val isLoading: Boolean = true,
-)
+) {
+    val hasOtherContent: Boolean
+        get() = otherRoleDefaults.isNotEmpty() || mediaDefaults.isNotEmpty()
+}
 
 /**
  * ViewModel for the Home screen.
- * Queries available default apps on a background thread,
- * splits into "Your defaults" (primary) and "Other" categories.
+ * Queries available default apps and media handlers on a background thread,
+ * splits into prioritized "Your defaults" (primary) and structured "Others" categories.
  * Refreshes on ON_RESUME via the Screen composable.
  */
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
@@ -38,16 +43,20 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     /** Re-query all defaults from the system. Called on ON_RESUME. */
     fun refresh() {
         viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update { it.copy(isLoading = true) }
+            if (_uiState.value.primaryDefaults.isEmpty() && !_uiState.value.hasOtherContent) {
+                _uiState.update { it.copy(isLoading = true) }
+            }
 
-            val defaults = repository.getAvailableDefaults()
-            val primary = defaults.filter { it.role.isPrimary }
-            val other = defaults.filter { !it.role.isPrimary }
+            val roleDefaults = repository.getAvailableDefaults()
+            val primary = roleDefaults.filter { it.role.isPrimary }.sortedBy { it.role.sortOrder }
+            val otherRoles = roleDefaults.filter { !it.role.isPrimary }.sortedBy { it.role.sortOrder }
+            val mediaDefaults = repository.getAvailableMediaDefaults().sortedBy { it.type.sortOrder }
 
             _uiState.update {
                 HomeUiState(
                     primaryDefaults = primary,
-                    otherDefaults = other,
+                    otherRoleDefaults = otherRoles,
+                    mediaDefaults = mediaDefaults,
                     isLoading = false,
                 )
             }

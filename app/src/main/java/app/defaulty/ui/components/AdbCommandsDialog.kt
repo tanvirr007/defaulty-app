@@ -1,0 +1,519 @@
+package app.defaulty.ui.components
+
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Terminal
+import androidx.compose.material.icons.outlined.Wifi
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import app.defaulty.R
+import app.defaulty.data.system.ShizukuManager
+import app.defaulty.domain.model.SupportedRole
+
+data class AdbCommandItem(
+    val title: String,
+    val description: String,
+    val command: String,
+)
+
+/**
+ * Dialog displaying the 2 Apply Modes (Standard vs ADB / Shizuku),
+ * step-by-step setup guide for 1-Tap Mode, and quick terminal reference commands.
+ */
+@Composable
+fun AdbCommandsDialog(
+    onDismiss: () -> Unit,
+    role: SupportedRole? = null,
+) {
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
+    val isShizukuActive = ShizukuManager.hasShizukuPermission()
+
+    val commandItems = listOf(
+        AdbCommandItem(
+            title = "Browser (e.g. Brave)",
+            description = "Assign default web browser",
+            command = "cmd role add-role-holder android.app.role.BROWSER com.brave.browser 0",
+        ),
+        AdbCommandItem(
+            title = "Phone / Dialer (e.g. Google Phone)",
+            description = "Assign default dialer app",
+            command = "cmd role add-role-holder android.app.role.DIALER com.google.android.dialer 0",
+        ),
+        AdbCommandItem(
+            title = "SMS / Messaging (e.g. Google Messages)",
+            description = "Assign default text messaging app",
+            command = "cmd role add-role-holder android.app.role.SMS com.google.android.apps.messaging 0",
+        ),
+        AdbCommandItem(
+            title = "Home Launcher",
+            description = "Assign default home screen launcher",
+            command = "cmd package set-home-activity com.teslacoilsw.launcher/.NovaLauncher",
+        ),
+        AdbCommandItem(
+            title = "Digital Assistant (e.g. Google)",
+            description = "Assign default voice and digital assistant",
+            command = "cmd role add-role-holder android.app.role.ASSISTANT com.google.android.googlequicksearchbox 0",
+        ),
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(28.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        icon = {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(16.dp),
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Terminal,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+        },
+        title = {
+            Text(
+                text = stringResource(R.string.adb_commands_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                if (isShizukuActive) {
+                    // Active Status Banner
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        border = BorderStroke(
+                            1.dp,
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.Top,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(22.dp),
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.shizuku_active_banner_title),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = stringResource(R.string.shizuku_active_banner_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+                }
+
+                // Modes Overview
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    border = BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Outlined.Settings,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp),
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.mode_standard_title),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.mode_standard_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    border = BorderStroke(
+                        1.dp,
+                        if (isShizukuActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                        else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Terminal,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.mode_shizuku_title),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                            }
+                            if (isShizukuActive) {
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.shizuku_active_badge),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.mode_shizuku_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Setup Guide for 1-Tap Apply
+                Text(
+                    text = stringResource(R.string.shizuku_guide_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Step 1: Install Shizuku
+                GuideStepCard(
+                    icon = Icons.Outlined.Download,
+                    title = stringResource(R.string.shizuku_guide_step1_title),
+                    description = stringResource(R.string.shizuku_guide_step1_desc),
+                    actionLabel = stringResource(R.string.btn_open_shizuku),
+                    onAction = {
+                        val launchIntent = context.packageManager.getLaunchIntentForPackage("moe.shizuku.privileged.api")
+                        if (launchIntent != null) {
+                            try {
+                                context.startActivity(launchIntent)
+                            } catch (e: Exception) {
+                                // Ignore
+                            }
+                        } else {
+                            try {
+                                val storeIntent = Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse("https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api"),
+                                )
+                                context.startActivity(storeIntent)
+                            } catch (e: Exception) {
+                                Toast.makeText(context, context.getString(R.string.no_browser_found), Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    },
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Step 2: Start via Wireless Debugging
+                GuideStepCard(
+                    icon = Icons.Outlined.Wifi,
+                    title = stringResource(R.string.shizuku_guide_step2_title),
+                    description = stringResource(R.string.shizuku_guide_step2_desc),
+                    actionLabel = stringResource(R.string.btn_open_dev_options),
+                    onAction = {
+                        try {
+                            context.startActivity(Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))
+                        } catch (e: Exception) {
+                            Toast.makeText(context, context.getString(R.string.unable_to_open_settings), Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Step 3: Authorize
+                GuideStepCard(
+                    icon = Icons.Outlined.Security,
+                    title = stringResource(R.string.shizuku_guide_step3_title),
+                    description = stringResource(R.string.shizuku_guide_step3_desc),
+                    actionLabel = stringResource(R.string.btn_authorize),
+                    onAction = {
+                        if (ShizukuManager.isShizukuAvailable()) {
+                            ShizukuManager.requestPermission()
+                        } else {
+                            Toast.makeText(context, "Shizuku is not running yet. Complete Step 2 first.", Toast.LENGTH_LONG).show()
+                        }
+                    },
+                )
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Quick ADB Terminal Commands Reference
+                Text(
+                    text = "ADB Shell Commands Reference",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                commandItems.forEach { item ->
+                    AdbCommandCardItem(
+                        item = item,
+                        onCopy = {
+                            clipboardManager.setText(AnnotatedString(item.command))
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.adb_command_copied),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        },
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(12.dp),
+            ) {
+                Text(stringResource(R.string.close))
+            }
+        },
+    )
+}
+
+@Composable
+private fun GuideStepCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    description: String,
+    actionLabel: String,
+    onAction: () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+        border = BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.Top) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            FilledTonalButton(
+                onClick = onAction,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = actionLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AdbCommandCardItem(
+    item: AdbCommandItem,
+    onCopy: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+        border = BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+        ),
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(10.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = item.title,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = item.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                IconButton(
+                    onClick = onCopy,
+                    modifier = Modifier.size(32.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ContentCopy,
+                        contentDescription = stringResource(R.string.cd_copy_command),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Surface(
+                shape = RoundedCornerShape(6.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = item.command,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
+    }
+}

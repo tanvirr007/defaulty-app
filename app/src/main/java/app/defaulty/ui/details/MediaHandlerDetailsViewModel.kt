@@ -7,10 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import app.defaulty.DefaultyApp
-import app.defaulty.data.system.ShizukuManager
 import app.defaulty.domain.model.CandidateAppInfo
-import app.defaulty.domain.model.DefaultAppInfo
-import app.defaulty.domain.model.SupportedRole
+import app.defaulty.domain.model.MediaDefaultAppInfo
+import app.defaulty.domain.model.MediaHandlerType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,31 +17,28 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class DetailsUiState(
-    val role: SupportedRole? = null,
-    val defaultApp: DefaultAppInfo? = null,
+data class MediaDetailsUiState(
+    val type: MediaHandlerType? = null,
+    val defaultApp: MediaDefaultAppInfo? = null,
     val candidateApps: List<CandidateAppInfo> = emptyList(),
     val isLoading: Boolean = true,
 )
 
 /**
- * ViewModel for the Default App Details screen.
- * Queries the current holder for a specific role, discovers
- * all candidate installed applications, and provides intents
- * for changing the default via Android system settings.
- *
- * Re-queries after returning from system UI (Product Rule 11).
+ * ViewModel for the Media Handler Details screen.
+ * Queries the current default handler and all compatible installed apps
+ * for media/file types (Video, Gallery, Music, PDF, Email).
  */
-class DefaultAppDetailsViewModel(
+class MediaHandlerDetailsViewModel(
     application: Application,
-    private val role: SupportedRole,
+    private val type: MediaHandlerType,
 ) : AndroidViewModel(application) {
 
     private val app = application as DefaultyApp
     private val repository = app.defaultAppsRepository
 
-    private val _uiState = MutableStateFlow(DetailsUiState(role = role))
-    val uiState: StateFlow<DetailsUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(MediaDetailsUiState(type = type))
+    val uiState: StateFlow<MediaDetailsUiState> = _uiState.asStateFlow()
 
     init {
         refresh()
@@ -54,11 +50,11 @@ class DefaultAppDetailsViewModel(
             if (_uiState.value.defaultApp == null && _uiState.value.candidateApps.isEmpty()) {
                 _uiState.update { it.copy(isLoading = true) }
             }
-            val info = repository.getDefaultForRole(role)
-            val candidates = repository.getCandidateAppsForRole(role)
+            val info = repository.getMediaDefault(type)
+            val candidates = repository.getCandidateAppsForMedia(type)
             _uiState.update {
-                DetailsUiState(
-                    role = role,
+                MediaDetailsUiState(
+                    type = type,
                     defaultApp = info,
                     candidateApps = candidates,
                     isLoading = false,
@@ -68,35 +64,19 @@ class DefaultAppDetailsViewModel(
     }
 
     /**
-     * Check if Shizuku is active and permission is granted.
+     * Intent to trigger Android's "Open with..." system chooser.
      */
-    fun isShizukuReady(): Boolean =
-        ShizukuManager.hasShizukuPermission()
+    fun getMediaChooserIntent(promptTitle: String): Intent =
+        repository.createMediaChooserIntent(type, promptTitle)
 
     /**
-     * Apply default role directly via Shizuku (ADB shell) and refresh state.
+     * Intent to launch sample media directly.
      */
-    suspend fun applyDefaultViaShizuku(packageName: String): Boolean {
-        val success = if (role == SupportedRole.HOME) {
-            ShizukuManager.applyHomeLauncher(packageName)
-        } else {
-            ShizukuManager.applyDefaultRole(role.roleName, packageName)
-        }
-        if (success) {
-            refresh()
-        }
-        return success
-    }
+    fun getMediaSampleIntent(): Intent =
+        repository.createMediaSampleIntent(type)
 
     /**
-     * Get the intent to change the default for this role via system settings.
-     */
-    fun getChangeDefaultIntent(): Intent =
-        repository.createChangeDefaultIntent(role)
-
-    /**
-     * Fallback intent: open general app settings for the current holder.
-     * Used when the primary intent is unavailable (Spec Section 8).
+     * Fallback intent: open general app settings for the current default package.
      */
     fun getFallbackSettingsIntent(): Intent? =
         _uiState.value.defaultApp?.holderPackageName?.let {
@@ -115,13 +95,13 @@ class DefaultAppDetailsViewModel(
     fun getManageLinksIntent(packageName: String): Intent =
         repository.createManageLinksIntent(packageName)
 
-    /** Factory for creating this ViewModel with a specific role. */
+    /** Factory for creating this ViewModel with a specific media handler type. */
     class Factory(
         private val application: Application,
-        private val role: SupportedRole,
+        private val type: MediaHandlerType,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            DefaultAppDetailsViewModel(application, role) as T
+            MediaHandlerDetailsViewModel(application, type) as T
     }
 }
