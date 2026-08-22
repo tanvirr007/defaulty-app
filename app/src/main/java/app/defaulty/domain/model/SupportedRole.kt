@@ -1,12 +1,12 @@
 package app.defaulty.domain.model
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PhoneCallback
+import androidx.compose.material.icons.automirrored.filled.PhoneForwarded
 import androidx.compose.material.icons.filled.Assistant
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.PhoneCallback
-import androidx.compose.material.icons.filled.PhoneForwarded
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -69,14 +69,14 @@ enum class SupportedRole(
     CALL_SCREENING(
         roleName = "android.app.role.CALL_SCREENING",
         displayLabel = "Call Screening",
-        icon = Icons.Default.PhoneCallback,
+        icon = Icons.AutoMirrored.Filled.PhoneCallback,
         isPrimary = false,
         description = "call screening and caller ID",
     ),
     CALL_REDIRECTION(
         roleName = "android.app.role.CALL_REDIRECTION",
         displayLabel = "Call Redirection",
-        icon = Icons.Default.PhoneForwarded,
+        icon = Icons.AutoMirrored.Filled.PhoneForwarded,
         isPrimary = false,
         description = "outgoing call redirection",
     ),

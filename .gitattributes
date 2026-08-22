@@ -1,0 +1,17 @@
+# Auto-detect text files and normalize line endings
+* text=auto
+
+# Unix shell scripts must always have LF
+/gradlew text eol=lf
+*.sh text eol=lf
+
+# Windows batch scripts
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files
+*.jar binary
+*.png binary
+*.webp binary
+*.jks binary
+*.keystore binary

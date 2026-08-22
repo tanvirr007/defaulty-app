@@ -8,5 +8,5 @@
     </style>
 
     <!-- Base app theme (Compose handles actual Material 3 theming) -->
-    <style name="Theme.Defaulty" parent="Theme.Material3.DayNight.NoActionBar" />
+    <style name="Theme.Defaulty" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

@@ -7,6 +7,11 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.util.Log
 
+import android.net.Uri
+import android.provider.Settings
+import android.provider.Telephony
+import android.telecom.TelecomManager
+
 /**
  * Safe wrapper around RoleManager.
  *
@@ -51,9 +56,46 @@ class RoleManagerWrapper(private val context: Context) {
      * Returns null if no holder, role unavailable, or the check fails.
      */
     fun getRoleHolder(roleName: String): String? = try {
-        roleManager?.getRoleHolders(roleName)?.firstOrNull()
+        val method = roleManager?.javaClass?.getMethod("getRoleHolders", String::class.java)
+        @Suppress("UNCHECKED_CAST")
+        val holders = method?.invoke(roleManager, roleName) as? List<String>
+        holders?.firstOrNull() ?: resolveDefaultViaIntent(roleName)
     } catch (e: Exception) {
-        Log.w(tag, "getRoleHolder failed for $roleName", e)
+        resolveDefaultViaIntent(roleName)
+    }
+
+    private fun resolveDefaultViaIntent(roleName: String): String? = try {
+        when (roleName) {
+            RoleManager.ROLE_BROWSER -> {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://example.com"))
+                val resolveInfo = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                resolveInfo?.activityInfo?.packageName?.takeIf {
+                    it != "android" && !it.contains("resolver", ignoreCase = true)
+                }
+            }
+            RoleManager.ROLE_DIALER -> {
+                val telecomManager = context.getSystemService(TelecomManager::class.java)
+                telecomManager?.defaultDialerPackage
+            }
+            RoleManager.ROLE_SMS -> {
+                Telephony.Sms.getDefaultSmsPackage(context)
+            }
+            RoleManager.ROLE_HOME -> {
+                val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+                val resolveInfo = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                resolveInfo?.activityInfo?.packageName?.takeIf {
+                    it != "android" && !it.contains("resolver", ignoreCase = true)
+                }
+            }
+            RoleManager.ROLE_ASSISTANT -> {
+                Settings.Secure.getString(context.contentResolver, "assistant")?.let { setting ->
+                    setting.split("/").firstOrNull()
+                }
+            }
+            else -> null
+        }
+    } catch (e: Exception) {
+        Log.w(tag, "resolveDefaultViaIntent failed for $roleName", e)
         null
     }
 
