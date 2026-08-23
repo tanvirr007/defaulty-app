@@ -102,9 +102,21 @@ fun ApplyModesScreen(
 
     val shizukuStartCommand = "adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh"
 
-    // Probe root availability on launch
+    // Probe root availability on launch and resolve AUTO if needed
     LaunchedEffect(Unit) {
-        isRootAvailable = withContext(Dispatchers.IO) { RootShellManager.isRootAvailable() }
+        val root = withContext(Dispatchers.IO) { RootShellManager.isRootAvailable() }
+        isRootAvailable = root
+        val shizuku = ShizukuManager.hasShizukuPermission()
+        isShizukuActive = shizuku
+        isShizukuAvailable = ShizukuManager.isShizukuAvailable()
+        if (currentApplyMode == ApplyMode.AUTO) {
+            val resolved = when {
+                root -> ApplyMode.ROOT
+                shizuku -> ApplyMode.SHIZUKU
+                else -> ApplyMode.STANDARD
+            }
+            app.userPreferences.setApplyMode(resolved)
+        }
     }
 
     DisposableEffect(Unit) {
@@ -119,7 +131,12 @@ fun ApplyModesScreen(
             refresh()
         }
         val permissionListener = Shizuku.OnRequestPermissionResultListener { _, grantResult ->
-            isShizukuActive = grantResult == PackageManager.PERMISSION_GRANTED || ShizukuManager.hasShizukuPermission()
+            val granted = grantResult == PackageManager.PERMISSION_GRANTED || ShizukuManager.hasShizukuPermission()
+            isShizukuActive = granted
+            isShizukuAvailable = ShizukuManager.isShizukuAvailable()
+            if (granted) {
+                coroutineScope.launch { app.userPreferences.setApplyMode(ApplyMode.SHIZUKU) }
+            }
         }
         try {
             Shizuku.addBinderReceivedListenerSticky(binderReceivedListener)
@@ -133,6 +150,15 @@ fun ApplyModesScreen(
                 Shizuku.removeRequestPermissionResultListener(permissionListener)
             } catch (_: Throwable) {}
         }
+    }
+
+    val effectiveApplyMode = when (currentApplyMode) {
+        ApplyMode.AUTO -> when {
+            isRootAvailable -> ApplyMode.ROOT
+            isShizukuActive -> ApplyMode.SHIZUKU
+            else -> ApplyMode.STANDARD
+        }
+        else -> currentApplyMode
     }
 
     Scaffold(
@@ -192,7 +218,7 @@ fun ApplyModesScreen(
                             icon = Icons.Outlined.AdminPanelSettings,
                             title = stringResource(R.string.apply_mode_root),
                             subtitle = stringResource(R.string.apply_mode_root_desc),
-                            selected = currentApplyMode == ApplyMode.ROOT,
+                            selected = effectiveApplyMode == ApplyMode.ROOT,
                             statusBadge = if (isRootAvailable) stringResource(R.string.status_available) else null,
                             onClick = {
                                 coroutineScope.launch { app.userPreferences.setApplyMode(ApplyMode.ROOT) }
@@ -205,7 +231,7 @@ fun ApplyModesScreen(
                             icon = Icons.Outlined.Terminal,
                             title = stringResource(R.string.apply_mode_shizuku),
                             subtitle = stringResource(R.string.apply_mode_shizuku_desc),
-                            selected = currentApplyMode == ApplyMode.SHIZUKU,
+                            selected = effectiveApplyMode == ApplyMode.SHIZUKU,
                             statusBadge = if (isShizukuActive) stringResource(R.string.status_available) else null,
                             onClick = {
                                 coroutineScope.launch { app.userPreferences.setApplyMode(ApplyMode.SHIZUKU) }
@@ -218,7 +244,7 @@ fun ApplyModesScreen(
                             icon = Icons.Outlined.Settings,
                             title = stringResource(R.string.apply_mode_standard),
                             subtitle = stringResource(R.string.apply_mode_standard_desc),
-                            selected = currentApplyMode == ApplyMode.STANDARD || currentApplyMode == ApplyMode.AUTO,
+                            selected = effectiveApplyMode == ApplyMode.STANDARD,
                             onClick = {
                                 coroutineScope.launch { app.userPreferences.setApplyMode(ApplyMode.STANDARD) }
                             },
@@ -228,7 +254,7 @@ fun ApplyModesScreen(
             }
 
             // Mode-specific method and setup section displayed dynamically based on selection
-            when (currentApplyMode) {
+            when (effectiveApplyMode) {
                 ApplyMode.ROOT -> {
                     item(key = "root_setup") {
                         RootSetupCard(
@@ -240,6 +266,7 @@ fun ApplyModesScreen(
                                         RootShellManager.isRootAvailable()
                                     }
                                     if (isRootAvailable) {
+                                        app.userPreferences.setApplyMode(ApplyMode.ROOT)
                                         Toast.makeText(
                                             context,
                                             context.getString(R.string.root_granted_toast),
@@ -286,10 +313,10 @@ fun ApplyModesScreen(
                             onAuthorize = {
                                 if (ShizukuManager.hasShizukuPermission()) {
                                     isShizukuActive = true
+                                    coroutineScope.launch { app.userPreferences.setApplyMode(ApplyMode.SHIZUKU) }
                                     Toast.makeText(context, context.getString(R.string.shizuku_authorized_toast), Toast.LENGTH_SHORT).show()
                                 } else {
                                     ShizukuManager.requestPermission()
-                                    isShizukuActive = ShizukuManager.hasShizukuPermission()
                                 }
                             },
                         )

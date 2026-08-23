@@ -123,16 +123,18 @@ fun OnboardingScreen(
     }
 
     LaunchedEffect(Unit) {
-        isRootAvailable = withContext(Dispatchers.IO) { RootShellManager.isRootAvailable() }
-    }
-
-    LaunchedEffect(isRootAvailable, isShizukuActive) {
+        val root = withContext(Dispatchers.IO) { RootShellManager.isRootAvailable() }
+        isRootAvailable = root
+        val shizuku = ShizukuManager.hasShizukuPermission()
+        isShizukuActive = shizuku
+        isShizukuAvailable = ShizukuManager.isShizukuAvailable()
         if (applyMode == ApplyMode.AUTO) {
-            when {
-                isRootAvailable -> viewModel.setApplyMode(ApplyMode.ROOT)
-                isShizukuActive -> viewModel.setApplyMode(ApplyMode.SHIZUKU)
-                else -> viewModel.setApplyMode(ApplyMode.STANDARD)
+            val bestMode = when {
+                root -> ApplyMode.ROOT
+                shizuku -> ApplyMode.SHIZUKU
+                else -> ApplyMode.STANDARD
             }
+            viewModel.setApplyMode(bestMode)
         }
     }
 
@@ -142,7 +144,11 @@ fun OnboardingScreen(
             if (event == Lifecycle.Event.ON_RESUME) {
                 refreshPrivileges()
                 coroutineScope.launch {
-                    isRootAvailable = withContext(Dispatchers.IO) { RootShellManager.isRootAvailable() }
+                    val root = withContext(Dispatchers.IO) { RootShellManager.isRootAvailable() }
+                    isRootAvailable = root
+                    if (root && applyMode == ApplyMode.STANDARD) {
+                        viewModel.setApplyMode(ApplyMode.ROOT)
+                    }
                 }
             }
         }
@@ -160,8 +166,12 @@ fun OnboardingScreen(
             refreshPrivileges()
         }
         val listener = Shizuku.OnRequestPermissionResultListener { _, grantResult ->
-            isShizukuActive = grantResult == PackageManager.PERMISSION_GRANTED || ShizukuManager.hasShizukuPermission()
+            val granted = grantResult == PackageManager.PERMISSION_GRANTED || ShizukuManager.hasShizukuPermission()
+            isShizukuActive = granted
             isShizukuAvailable = ShizukuManager.isShizukuAvailable()
+            if (granted && applyMode == ApplyMode.STANDARD) {
+                viewModel.setApplyMode(ApplyMode.SHIZUKU)
+            }
         }
         try {
             Shizuku.addBinderReceivedListenerSticky(binderReceivedListener)
@@ -177,8 +187,17 @@ fun OnboardingScreen(
         }
     }
 
+    val effectiveApplyMode = when (applyMode) {
+        ApplyMode.AUTO -> when {
+            isRootAvailable -> ApplyMode.ROOT
+            isShizukuActive -> ApplyMode.SHIZUKU
+            else -> ApplyMode.STANDARD
+        }
+        else -> applyMode
+    }
+
     val canProceed = when (currentPage) {
-        1 -> when (applyMode) {
+        1 -> when (effectiveApplyMode) {
             ApplyMode.AUTO, ApplyMode.STANDARD -> true
             ApplyMode.ROOT -> isRootAvailable
             ApplyMode.SHIZUKU -> isShizukuActive
@@ -245,14 +264,18 @@ fun OnboardingScreen(
                 when (page) {
                     0 -> WelcomePage()
                     1 -> ChooseModePage(
-                        selectedMode = applyMode,
+                        selectedMode = effectiveApplyMode,
                         onModeSelect = { mode -> viewModel.setApplyMode(mode) },
                         isRootAvailable = isRootAvailable,
                         onRequestRoot = {
                             coroutineScope.launch {
                                 RootShellManager.clearCache()
-                                isRootAvailable = withContext(Dispatchers.IO) {
+                                val root = withContext(Dispatchers.IO) {
                                     RootShellManager.isRootAvailable()
+                                }
+                                isRootAvailable = root
+                                if (root) {
+                                    viewModel.setApplyMode(ApplyMode.ROOT)
                                 }
                             }
                         },
