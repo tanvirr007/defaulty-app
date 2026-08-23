@@ -493,6 +493,7 @@ private fun ChooseModePage(
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 OutlinedButton(
                                     onClick = {
@@ -514,9 +515,14 @@ private fun ChooseModePage(
                                         }
                                     },
                                     shape = RoundedCornerShape(8.dp),
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
                                     modifier = Modifier.weight(1f),
                                 ) {
-                                    Text(stringResource(R.string.btn_open_shizuku), maxLines = 1)
+                                    Text(
+                                        text = stringResource(R.string.btn_open_shizuku),
+                                        maxLines = 1,
+                                        textAlign = TextAlign.Center,
+                                    )
                                 }
 
                                 OutlinedButton(
@@ -532,9 +538,14 @@ private fun ChooseModePage(
                                         }
                                     },
                                     shape = RoundedCornerShape(8.dp),
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
                                     modifier = Modifier.weight(1f),
                                 ) {
-                                    Text(stringResource(R.string.btn_open_dev_options), maxLines = 1)
+                                    Text(
+                                        text = stringResource(R.string.btn_open_dev_options),
+                                        maxLines = 1,
+                                        textAlign = TextAlign.Center,
+                                    )
                                 }
                             }
                         }

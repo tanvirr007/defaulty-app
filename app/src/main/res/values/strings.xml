@@ -166,7 +166,7 @@
     <string name="shizuku_guide_step3_title">3. Authorize Defaulty</string>
     <string name="shizuku_guide_step3_desc">Allow Defaulty access to ADB shell so it can apply defaults instantly with a single tap.</string>
     <string name="btn_open_shizuku">Open Shizuku</string>
-    <string name="btn_open_dev_options">Developer Options</string>
+    <string name="btn_open_dev_options">Dev Options</string>
     <string name="btn_authorize">Authorize</string>
     <string name="shizuku_active_banner_title">1-Tap ADB Mode Active</string>
     <string name="shizuku_active_banner_desc">Shizuku is running and authorized. Defaults are applied instantly in the background with 1 tap.</string>

@@ -60,6 +60,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -455,21 +456,32 @@ private fun ShizukuWirelessCard(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 OutlinedButton(
                     onClick = onOpenShizuku,
                     shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
                     modifier = Modifier.weight(1f),
                 ) {
-                    Text(stringResource(R.string.btn_open_shizuku), maxLines = 1)
+                    Text(
+                        text = stringResource(R.string.btn_open_shizuku),
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
                 }
 
                 FilledTonalButton(
                     onClick = onOpenDevOptions,
                     shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
                     modifier = Modifier.weight(1f),
                 ) {
-                    Text(stringResource(R.string.btn_open_dev_options), maxLines = 1)
+                    Text(
+                        text = stringResource(R.string.btn_open_dev_options),
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
 
