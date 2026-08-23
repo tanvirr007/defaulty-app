@@ -30,6 +30,11 @@
     <string name="media_test_choose_desc">Triggers the Android app chooser so you can select your default.</string>
     <string name="media_no_default_set">No default set — Android prompts you to choose an app.</string>
     <string name="media_open_with_prompt">Choose an app</string>
+    <string name="media_open_defaults_action">Open by default</string>
+    <string name="media_test_chooser_action">Set via Open with…</string>
+    <string name="media_toast_hint">Select your app and choose Always</string>
+    <string name="media_info_card_title">Media defaults on Android</string>
+    <string name="media_info_card_desc">Android manages file defaults through \"Open with…\" or each app\'s \"Open by default\" settings.</string>
 
     <!-- Roles descriptions -->
     <string name="role_notes">Notes</string>

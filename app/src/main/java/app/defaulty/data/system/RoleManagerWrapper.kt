@@ -401,11 +401,12 @@ class RoleManagerWrapper(private val context: Context) {
     }
 
     /**
-     * Create an Intent Chooser allowing user to choose an app and set default.
+     * Create an Intent allowing user to choose an app and set default.
+     * Uses direct intent instead of Intent.createChooser to allow Android's
+     * native resolver to offer the "Always" / "Just once" selection.
      */
     fun createMediaChooserIntent(type: MediaHandlerType, title: String): Intent {
-        val baseIntent = createMediaSampleIntent(type)
-        return Intent.createChooser(baseIntent, title)
+        return createMediaSampleIntent(type)
     }
 
     /**
