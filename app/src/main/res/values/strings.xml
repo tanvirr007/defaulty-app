@@ -123,9 +123,9 @@
     <string name="onboarding_mode_title">Choose Apply Mode</string>
     <string name="onboarding_mode_description">Select how you prefer Defaulty to apply default app changes:</string>
     <string name="onboarding_mode_standard">Standard Mode</string>
-    <string name="onboarding_mode_standard_desc">Opens Android System Settings (Zero setup required)</string>
+    <string name="onboarding_mode_standard_desc">Opens Android Settings (No setup needed)</string>
     <string name="onboarding_mode_shizuku">ADB / Shizuku Mode</string>
-    <string name="onboarding_mode_shizuku_desc">1-Tap Apply with confirmation toast (Requires Shizuku)</string>
+    <string name="onboarding_mode_shizuku_desc">1-Tap instant apply (Requires Shizuku)</string>
     <string name="onboarding_appearance_title">Choose your look</string>
     <string name="onboarding_ready_title">You\'re all set!</string>
     <string name="next">Next</string>
@@ -141,14 +141,14 @@
     <string name="copy_command">Copy</string>
     <string name="adb_command_copied">Command copied to clipboard</string>
     <string name="mode_standard_title">Standard Mode (Zero Setup)</string>
-    <string name="mode_standard_desc">Opens Android System Settings page. User taps app in settings -> Returns.</string>
+    <string name="mode_standard_desc">Opens Android Settings to choose default app. No setup required.</string>
     <string name="mode_shizuku_title">ADB / Shizuku Mode (Setup Wizard)</string>
-    <string name="mode_shizuku_desc">Connects to on-device ADB shell service. 1-Tap \'Apply\' -> Toast \'Done\' instantly (zero extra steps).</string>
+    <string name="mode_shizuku_desc">Applies changes instantly in 1 tap without leaving the app.</string>
     <string name="shizuku_active_badge">1-Tap Active</string>
     <string name="shizuku_setup_button">Enable 1-Tap Apply</string>
     <string name="view_all_adb_commands">View commands</string>
     <string name="how_it_works_point4_title">ADB / Shizuku Mode</string>
-    <string name="how_it_works_point4_desc">Enable Shizuku or wireless debugging to set defaults with a single tap and confirmation toast.</string>
+    <string name="how_it_works_point4_desc">Enable Shizuku to set default apps instantly with a single tap.</string>
     <string name="shizuku_guide_title">How to Enable 1-Tap Apply</string>
     <string name="shizuku_guide_step1_title">1. Install Shizuku</string>
     <string name="shizuku_guide_step1_desc">Download Shizuku from Play Store or GitHub (free &amp; open-source).</string>
@@ -160,7 +160,7 @@
     <string name="btn_open_dev_options">Developer Options</string>
     <string name="btn_authorize">Authorize</string>
     <string name="shizuku_active_banner_title">1-Tap ADB Mode Active</string>
-    <string name="shizuku_active_banner_desc">Shizuku is running and authorized. When you tap \'Apply default\', Defaulty will switch defaults directly in the background and confirm with \'Done\'.</string>
+    <string name="shizuku_active_banner_desc">Shizuku is running and authorized. Defaults are applied instantly in the background with 1 tap.</string>
 
     <!-- Content descriptions -->
     <string name="cd_app_icon">%1$s app icon</string>
