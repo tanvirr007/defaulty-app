@@ -86,6 +86,7 @@ import app.defaulty.data.preferences.ThemeMode
 import app.defaulty.data.system.RootShellManager
 import app.defaulty.data.system.ShizukuManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import rikka.shizuku.Shizuku
@@ -128,7 +129,8 @@ fun OnboardingScreen(
         val shizuku = ShizukuManager.hasShizukuPermission()
         isShizukuActive = shizuku
         isShizukuAvailable = ShizukuManager.isShizukuAvailable()
-        if (applyMode == ApplyMode.AUTO) {
+        val savedMode = viewModel.applyMode.first()
+        if (savedMode == ApplyMode.AUTO) {
             val bestMode = when {
                 root -> ApplyMode.ROOT
                 shizuku -> ApplyMode.SHIZUKU
@@ -146,9 +148,6 @@ fun OnboardingScreen(
                 coroutineScope.launch {
                     val root = withContext(Dispatchers.IO) { RootShellManager.isRootAvailable() }
                     isRootAvailable = root
-                    if (root && applyMode == ApplyMode.STANDARD) {
-                        viewModel.setApplyMode(ApplyMode.ROOT)
-                    }
                 }
             }
         }
@@ -169,9 +168,6 @@ fun OnboardingScreen(
             val granted = grantResult == PackageManager.PERMISSION_GRANTED || ShizukuManager.hasShizukuPermission()
             isShizukuActive = granted
             isShizukuAvailable = ShizukuManager.isShizukuAvailable()
-            if (granted && applyMode == ApplyMode.STANDARD) {
-                viewModel.setApplyMode(ApplyMode.SHIZUKU)
-            }
         }
         try {
             Shizuku.addBinderReceivedListenerSticky(binderReceivedListener)

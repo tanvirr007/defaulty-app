@@ -71,6 +71,7 @@ import app.defaulty.data.system.RootShellManager
 import app.defaulty.data.system.ShizukuManager
 import app.defaulty.ui.components.DefaultyTopBar
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import rikka.shizuku.Shizuku
@@ -109,7 +110,8 @@ fun ApplyModesScreen(
         val shizuku = ShizukuManager.hasShizukuPermission()
         isShizukuActive = shizuku
         isShizukuAvailable = ShizukuManager.isShizukuAvailable()
-        if (currentApplyMode == ApplyMode.AUTO) {
+        val savedMode = app.userPreferences.applyMode.first()
+        if (savedMode == ApplyMode.AUTO) {
             val resolved = when {
                 root -> ApplyMode.ROOT
                 shizuku -> ApplyMode.SHIZUKU
