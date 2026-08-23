@@ -59,39 +59,49 @@ Defaulty adapts dynamically to the roles exposed and supported by the device:
 
 ## Apply Modes
 
-Defaulty supports two flexible modes to manage default applications:
+Defaulty supports three flexible modes to manage default applications:
 
-| Mode | Setup | Experience |
+| Mode | Requirements | Experience |
 | :--- | :--- | :--- |
-| **Standard Mode** | Zero Setup | Opens Android System Settings page. User taps app in settings → Returns. |
-| **ADB / Shizuku Mode** | Setup Wizard | Connects to on-device ADB shell service. **1-Tap "Apply" → Toast "Done" instantly (zero extra steps).** |
+| **Root Mode** | Root Access (KernelSU / Magisk / APatch) | **1-Tap Apply** — Uses direct `su` shell execution. No Shizuku or PC required. |
+| **ADB / Shizuku Mode** | Shizuku installed & running on device | **1-Tap Apply** — Uses Shizuku's local ADB binder bridge to apply changes in 1 tap without leaving the app. |
+| **Standard Mode** | Zero Setup (No Root, No Shizuku, No PC) | Opens Android's official System Settings confirmation dialog. |
 
-### How to Enable ADB / Shizuku Mode (1-Tap Apply)
+> [!TIP]
+> **Manual PC ADB Commands**: If you do not have Root or Shizuku installed, you can still copy the exact `cmd role add-role-holder` command directly from any candidate app card in Defaulty and run it in your computer's terminal.
 
-Setting up Shizuku takes less than a minute and requires no PC or root on Android 11+:
+---
 
-1. **Install Shizuku**:
-   Get Shizuku from the [Google Play Store](https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api) or [GitHub Releases](https://github.com/RikkaApps/Shizuku/releases).
+### Why is Shizuku needed for 1-Tap Apply?
 
-2. **Start Shizuku**:
-   - **On-Device via Wireless Debugging (No PC / No Root)**:
-     1. Go to **Settings → Developer Options → Enable Wireless Debugging**.
-     2. Open **Shizuku** and tap **Pairing** (enter the 6-digit Wi-Fi pairing code).
-     3. Tap **Start** in Shizuku.
-   - **Via PC (ADB over USB)**:
-     ```bash
-     adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh
-     # Alternative for newer Android versions / restricted storage:
-     adb shell sh /data/user_de/0/moe.shizuku.privileged.api/start.sh
-     ```
-   - **Via Root**:
-     Open Shizuku and tap **Start** with Superuser / Magisk / KernelSU permission.
+Android's security architecture prevents normal third-party applications from executing privileged system commands (such as `cmd role add-role-holder`). **Shizuku** acts as an on-device service running under the `adb shell` (UID 2000) security context. By connecting Defaulty to Shizuku, Defaulty can apply default application changes instantly with a single tap.
+
+---
+
+### How to Set Up Shizuku (for 1-Tap Apply)
+
+Setting up Shizuku only needs to be done once per boot:
+
+1. **Install Shizuku on your phone**:
+   Download Shizuku from the [Google Play Store](https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api) or [GitHub Releases](https://github.com/RikkaApps/Shizuku/releases).
+
+2. **Start the Shizuku Service**:
+   - **Method A: On-Device Wireless Debugging (Recommended / No PC needed, Android 11+)**:
+     1. In phone **Settings → Developer Options**, enable **Wireless Debugging**.
+     2. Open **Shizuku** and tap **Pairing** (enter the 6-digit Wi-Fi pairing code from notification/dialog).
+     3. Return to Shizuku and tap **Start**.
+   - **Method B: Via PC (ADB over USB)**:
+     1. Connect your phone to your PC with **USB Debugging** enabled.
+     2. Open the Shizuku app on your phone &rarr; tap **Start by connecting to a computer** &rarr; tap **View command** &rarr; copy the exact start command.
+     3. Run the copied command in your PC's PowerShell or Terminal (e.g. `adb shell .../libshizuku.so` or universal command `adb shell "$(pm path moe.shizuku.privileged.api | head -n1 | sed 's/package://' | sed 's/base.apk/lib\/arm64\/libshizuku.so/')"`)
+   - **Method C: Via Root (Superuser)**:
+     If your phone is rooted, simply tap **Start** with Superuser / Magisk permission.
 
 3. **Authorize Defaulty**:
-   Open Defaulty → When prompted or in any default details screen, tap **Enable 1-Tap Apply** to allow Shizuku access.
+   Open **Defaulty → Settings → Apply Modes** (or any role details page) and tap **Authorize** to grant Shizuku shell access.
 
-4. **Enjoy Instant 1-Tap Defaults**:
-   Select your preferred app in Defaulty and tap **Apply default** — Android sets it as default instantly in the background with a confirmation toast **"Done"**!
+4. **1-Tap Apply**:
+   Choose any app in Defaulty and tap **Apply default** — the change is applied instantly in the background with a confirmation toast **"Done"**!
 
 ---
 

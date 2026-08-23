@@ -182,12 +182,12 @@
     <string name="cd_app_icon">%1$s app icon</string>
     <string name="cd_navigate_back">Navigate back</string>
     <string name="cd_copy_command">Copy command to clipboard</string>
-    <string name="adb_pc_wireless_title">Method 1: Wireless Debugging (On-Device)</string>
-    <string name="adb_pc_wireless_desc">Requires Wi-Fi. Pair Shizuku with Android Wireless Debugging and start directly on your phone without connecting to a computer.</string>
+    <string name="adb_pc_wireless_title">Method 1: Wireless Debugging (Recommended)</string>
+    <string name="adb_pc_wireless_desc">Pair Shizuku with Android Wireless Debugging in Developer Options and start directly on your phone. No PC or USB cable needed.</string>
     <string name="adb_pc_usb_title">Method 2: PC Terminal (ADB over USB)</string>
-    <string name="adb_pc_usb_desc">Connect your phone to your PC with USB debugging enabled, then execute the command below in PowerShell or Terminal:</string>
-    <string name="adb_pc_troubleshoot_title">PC Troubleshooting</string>
-    <string name="adb_pc_troubleshoot_desc">If the terminal displays \"Permission denied\" or \"No such file\", open Shizuku on your phone, tap \"Start by connecting to a computer\", and tap \"View command\" to export the latest start script.</string>
+    <string name="adb_pc_usb_desc">Connect your phone to your PC with USB debugging enabled. Open Shizuku &gt; \"Start by connecting to a computer\" &gt; \"View command\" to get the exact start command for your phone, or run the command below:</string>
+    <string name="adb_pc_troubleshoot_title">Why is Shizuku needed?</string>
+    <string name="adb_pc_troubleshoot_desc">Android does not allow regular apps to run privileged shell commands. Shizuku acts as an on-device ADB bridge so Defaulty can apply defaults in 1 tap without opening Settings.\n\nTip: You can also copy and run raw role commands (cmd role add-role-holder ...) directly in your PC terminal without installing Shizuku.</string>
 
     <!-- Apply Mode Selector -->
     <string name="apply_mode_selector_title">Choose Apply Mode</string>
@@ -197,7 +197,7 @@
     <string name="apply_mode_root">Root</string>
     <string name="apply_mode_root_desc">KernelSU / Magisk / APatch — no extra apps needed</string>
     <string name="apply_mode_shizuku">ADB / Shizuku</string>
-    <string name="apply_mode_shizuku_desc">1-Tap via on-device ADB shell service</string>
+    <string name="apply_mode_shizuku_desc">1-Tap Apply via on-device Shizuku ADB service</string>
     <string name="apply_mode_standard">Standard</string>
     <string name="apply_mode_standard_desc">Opens Android Settings (no privileges needed)</string>
 
