@@ -6,6 +6,9 @@ import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -19,7 +22,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +40,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.outlined.AdminPanelSettings
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -49,14 +54,18 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -73,7 +82,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import app.defaulty.R
 import app.defaulty.data.preferences.ApplyMode
 import app.defaulty.data.preferences.ThemeMode
+import app.defaulty.data.system.RootShellManager
 import app.defaulty.data.system.ShizukuManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import rikka.shizuku.Shizuku
 
 /**
@@ -81,7 +94,7 @@ import rikka.shizuku.Shizuku
  *
  * 4 pages:
  *   1. Welcome — what the app does
- *   2. Apply Mode — Standard Mode vs 1-Tap ADB/Shizuku Mode (requires Shizuku before advancing)
+ *   2. Apply Mode — Auto-Detect / Root / Shizuku / Standard
  *   3. Appearance — System/Light/Dark selection
  *   4. Finished — ready to go
  *
@@ -94,18 +107,31 @@ fun OnboardingScreen(
     viewModel: OnboardingViewModel = viewModel(),
 ) {
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+    val applyMode by viewModel.applyMode.collectAsStateWithLifecycle()
     var currentPage by rememberSaveable { mutableIntStateOf(0) }
     val totalPages = 4
 
+    val coroutineScope = rememberCoroutineScope()
+    var isRootAvailable by remember { mutableStateOf(false) }
     var isShizukuActive by remember { mutableStateOf(ShizukuManager.hasShizukuPermission()) }
     var isShizukuAvailable by remember { mutableStateOf(ShizukuManager.isShizukuAvailable()) }
-    var selectedMode by rememberSaveable { mutableIntStateOf(if (isShizukuActive) 1 else 0) }
 
-    val refreshShizukuStatus = {
+    val refreshPrivileges = {
         isShizukuActive = ShizukuManager.hasShizukuPermission()
         isShizukuAvailable = ShizukuManager.isShizukuAvailable()
-        if (isShizukuActive) {
-            selectedMode = 1
+    }
+
+    LaunchedEffect(Unit) {
+        isRootAvailable = withContext(Dispatchers.IO) { RootShellManager.isRootAvailable() }
+    }
+
+    LaunchedEffect(isRootAvailable, isShizukuActive) {
+        if (applyMode == ApplyMode.AUTO) {
+            when {
+                isRootAvailable -> viewModel.setApplyMode(ApplyMode.ROOT)
+                isShizukuActive -> viewModel.setApplyMode(ApplyMode.SHIZUKU)
+                else -> viewModel.setApplyMode(ApplyMode.STANDARD)
+            }
         }
     }
 
@@ -113,7 +139,10 @@ fun OnboardingScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                refreshShizukuStatus()
+                refreshPrivileges()
+                coroutineScope.launch {
+                    isRootAvailable = withContext(Dispatchers.IO) { RootShellManager.isRootAvailable() }
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -124,15 +153,14 @@ fun OnboardingScreen(
 
     DisposableEffect(Unit) {
         val binderReceivedListener = Shizuku.OnBinderReceivedListener {
-            refreshShizukuStatus()
+            refreshPrivileges()
         }
         val binderDeadListener = Shizuku.OnBinderDeadListener {
-            refreshShizukuStatus()
+            refreshPrivileges()
         }
         val listener = Shizuku.OnRequestPermissionResultListener { _, grantResult ->
             isShizukuActive = grantResult == PackageManager.PERMISSION_GRANTED || ShizukuManager.hasShizukuPermission()
             isShizukuAvailable = ShizukuManager.isShizukuAvailable()
-            if (isShizukuActive) selectedMode = 1
         }
         try {
             Shizuku.addBinderReceivedListenerSticky(binderReceivedListener)
@@ -149,7 +177,11 @@ fun OnboardingScreen(
     }
 
     val canProceed = when (currentPage) {
-        1 -> selectedMode == 0 || isShizukuActive
+        1 -> when (applyMode) {
+            ApplyMode.AUTO, ApplyMode.STANDARD -> true
+            ApplyMode.ROOT -> isRootAvailable
+            ApplyMode.SHIZUKU -> isShizukuActive
+        }
         else -> true
     }
 
@@ -171,18 +203,18 @@ fun OnboardingScreen(
             ) {
                 repeat(totalPages) { index ->
                     val isSelected = index == currentPage
-                    val pillWidth by androidx.compose.animation.core.animateDpAsState(
+                    val pillWidth by animateDpAsState(
                         targetValue = if (isSelected) 28.dp else 8.dp,
-                        animationSpec = androidx.compose.animation.core.tween(durationMillis = 300),
+                        animationSpec = tween(durationMillis = 300),
                         label = "pill_width",
                     )
-                    val pillColor by androidx.compose.animation.animateColorAsState(
+                    val pillColor by animateColorAsState(
                         targetValue = if (isSelected) {
                             MaterialTheme.colorScheme.primary
                         } else {
                             MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
                         },
-                        animationSpec = androidx.compose.animation.core.tween(durationMillis = 300),
+                        animationSpec = tween(durationMillis = 300),
                         label = "pill_color",
                     )
                     Box(
@@ -212,14 +244,15 @@ fun OnboardingScreen(
                 when (page) {
                     0 -> WelcomePage()
                     1 -> ChooseModePage(
-                        selectedMode = selectedMode,
-                        onModeSelect = { mode ->
-                            selectedMode = mode
-                            // Persist apply mode when user selects in onboarding
-                            if (mode == 0) {
-                                viewModel.setApplyMode(ApplyMode.STANDARD)
-                            } else {
-                                viewModel.setApplyMode(ApplyMode.AUTO)
+                        selectedMode = applyMode,
+                        onModeSelect = { mode -> viewModel.setApplyMode(mode) },
+                        isRootAvailable = isRootAvailable,
+                        onRequestRoot = {
+                            coroutineScope.launch {
+                                RootShellManager.clearCache()
+                                isRootAvailable = withContext(Dispatchers.IO) {
+                                    RootShellManager.isRootAvailable()
+                                }
                             }
                         },
                         isShizukuActive = isShizukuActive,
@@ -280,8 +313,10 @@ private fun WelcomePage() {
 
 @Composable
 private fun ChooseModePage(
-    selectedMode: Int,
-    onModeSelect: (Int) -> Unit,
+    selectedMode: ApplyMode,
+    onModeSelect: (ApplyMode) -> Unit,
+    isRootAvailable: Boolean,
+    onRequestRoot: () -> Unit,
     isShizukuActive: Boolean,
     isShizukuAvailable: Boolean,
 ) {
@@ -294,7 +329,7 @@ private fun ChooseModePage(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
-            imageVector = Icons.Outlined.Terminal,
+            imageVector = Icons.Outlined.AutoAwesome,
             contentDescription = null,
             modifier = Modifier.size(64.dp),
             tint = MaterialTheme.colorScheme.primary,
@@ -319,216 +354,306 @@ private fun ChooseModePage(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // Option 1: Standard Mode
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = if (selectedMode == 0) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainerLow,
-            border = BorderStroke(
-                width = if (selectedMode == 0) 1.5.dp else 1.dp,
-                color = if (selectedMode == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onModeSelect(0) },
+        // Option 1: Direct Root
+        OnboardingModeOptionCard(
+            icon = Icons.Outlined.AdminPanelSettings,
+            title = stringResource(R.string.apply_mode_root),
+            subtitle = stringResource(R.string.apply_mode_root_desc),
+            selected = selectedMode == ApplyMode.ROOT,
+            statusBadge = if (isRootAvailable) stringResource(R.string.status_available) else null,
+            onClick = { onModeSelect(ApplyMode.ROOT) },
         ) {
+            if (isRootAvailable) {
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.onboarding_root_ready),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                    }
+                }
+            } else {
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = stringResource(R.string.root_setup_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Button(
+                            onClick = onRequestRoot,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.btn_request_root))
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Text(
+                            text = stringResource(R.string.onboarding_root_setup_hint),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Option 3: ADB / Shizuku Mode
+        OnboardingModeOptionCard(
+            icon = Icons.Outlined.Terminal,
+            title = stringResource(R.string.apply_mode_shizuku),
+            subtitle = stringResource(R.string.apply_mode_shizuku_desc),
+            selected = selectedMode == ApplyMode.SHIZUKU,
+            statusBadge = if (isShizukuActive) stringResource(R.string.status_available) else null,
+            onClick = { onModeSelect(ApplyMode.SHIZUKU) },
+        ) {
+            if (isShizukuActive) {
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.onboarding_shizuku_ready),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                    }
+                }
+            } else {
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = if (isShizukuAvailable) {
+                                stringResource(R.string.onboarding_shizuku_need_auth)
+                            } else {
+                                stringResource(R.string.onboarding_shizuku_need_start)
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Button(
+                            onClick = { ShizukuManager.requestPermission() },
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.btn_authorize))
+                        }
+
+                        if (!isShizukuAvailable) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                OutlinedButton(
+                                    onClick = {
+                                        val launchIntent = context.packageManager.getLaunchIntentForPackage("moe.shizuku.privileged.api")
+                                        if (launchIntent != null) {
+                                            try {
+                                                context.startActivity(launchIntent)
+                                            } catch (_: Exception) {}
+                                        } else {
+                                            try {
+                                                val storeIntent = Intent(
+                                                    Intent.ACTION_VIEW,
+                                                    Uri.parse("https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api"),
+                                                )
+                                                context.startActivity(storeIntent)
+                                            } catch (_: Exception) {
+                                                Toast.makeText(context, context.getString(R.string.no_browser_found), Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    },
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    Text(stringResource(R.string.btn_open_shizuku), maxLines = 1)
+                                }
+
+                                OutlinedButton(
+                                    onClick = {
+                                        try {
+                                            val devIntent = Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+                                            context.startActivity(devIntent)
+                                        } catch (_: Exception) {
+                                            try {
+                                                val settingsIntent = Intent(Settings.ACTION_SETTINGS)
+                                                context.startActivity(settingsIntent)
+                                            } catch (_: Exception) {}
+                                        }
+                                    },
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    Text(stringResource(R.string.btn_open_dev_options), maxLines = 1)
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Text(
+                            text = stringResource(R.string.onboarding_shizuku_setup_hint),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Option 4: Standard Mode
+        OnboardingModeOptionCard(
+            icon = Icons.Outlined.Settings,
+            title = stringResource(R.string.apply_mode_standard),
+            subtitle = stringResource(R.string.apply_mode_standard_desc),
+            selected = selectedMode == ApplyMode.STANDARD,
+            onClick = { onModeSelect(ApplyMode.STANDARD) },
+        )
+    }
+}
+
+@Composable
+private fun OnboardingModeOptionCard(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    statusBadge: String? = null,
+    expandableContent: (@Composable () -> Unit)? = null,
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = if (selected) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(
+            width = if (selected) 1.5.dp else 1.dp,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
             Row(
-                modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 RadioButton(
-                    selected = selectedMode == 0,
-                    onClick = { onModeSelect(0) },
+                    selected = selected,
+                    onClick = onClick,
+                    modifier = Modifier.size(24.dp),
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(10.dp))
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = if (selected) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHighest
+                    },
+                    modifier = Modifier.size(28.dp),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = if (selected) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(10.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.onboarding_mode_standard),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        if (statusBadge != null) {
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                            ) {
+                                Text(
+                                    text = statusBadge,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
+                                )
+                            }
+                        }
+                    }
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = stringResource(R.string.onboarding_mode_standard_desc),
+                        text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Option 2: ADB / Shizuku Mode
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = if (selectedMode == 1) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainerLow,
-            border = BorderStroke(
-                width = if (selectedMode == 1) 1.5.dp else 1.dp,
-                color = if (selectedMode == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onModeSelect(1) },
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    RadioButton(
-                        selected = selectedMode == 1,
-                        onClick = { onModeSelect(1) },
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = stringResource(R.string.onboarding_mode_shizuku),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            if (isShizukuActive) {
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Surface(
-                                    shape = RoundedCornerShape(4.dp),
-                                    color = MaterialTheme.colorScheme.primaryContainer,
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.shizuku_active_badge),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
-                                    )
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = stringResource(R.string.onboarding_mode_shizuku_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-
-                if (selectedMode == 1) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    if (isShizukuActive) {
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(10.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.CheckCircle,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp),
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = stringResource(R.string.onboarding_shizuku_ready),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                )
-                            }
-                        }
-                    } else {
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
-                                Text(
-                                    text = if (isShizukuAvailable) {
-                                        stringResource(R.string.onboarding_shizuku_need_auth)
-                                    } else {
-                                        stringResource(R.string.onboarding_shizuku_need_start)
-                                    },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                Button(
-                                    onClick = { ShizukuManager.requestPermission() },
-                                    shape = RoundedCornerShape(8.dp),
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    Text(stringResource(R.string.btn_authorize))
-                                }
-
-                                if (!isShizukuAvailable) {
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    ) {
-                                        OutlinedButton(
-                                            onClick = {
-                                                val launchIntent = context.packageManager.getLaunchIntentForPackage("moe.shizuku.privileged.api")
-                                                if (launchIntent != null) {
-                                                    try {
-                                                        context.startActivity(launchIntent)
-                                                    } catch (_: Exception) {}
-                                                } else {
-                                                    try {
-                                                        val storeIntent = Intent(
-                                                            Intent.ACTION_VIEW,
-                                                            Uri.parse("https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api"),
-                                                        )
-                                                        context.startActivity(storeIntent)
-                                                    } catch (_: Exception) {
-                                                        Toast.makeText(context, context.getString(R.string.no_browser_found), Toast.LENGTH_SHORT).show()
-                                                    }
-                                                }
-                                            },
-                                            shape = RoundedCornerShape(8.dp),
-                                            modifier = Modifier.weight(1f),
-                                        ) {
-                                            Text(stringResource(R.string.btn_open_shizuku), maxLines = 1)
-                                        }
-
-                                        OutlinedButton(
-                                            onClick = {
-                                                try {
-                                                    val devIntent = Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
-                                                    context.startActivity(devIntent)
-                                                } catch (_: Exception) {
-                                                    try {
-                                                        val settingsIntent = Intent(Settings.ACTION_SETTINGS)
-                                                        context.startActivity(settingsIntent)
-                                                    } catch (_: Exception) {}
-                                                }
-                                            },
-                                            shape = RoundedCornerShape(8.dp),
-                                            modifier = Modifier.weight(1f),
-                                        ) {
-                                            Text(stringResource(R.string.btn_open_dev_options), maxLines = 1)
-                                        }
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.height(6.dp))
-
-                                Text(
-                                    text = stringResource(R.string.onboarding_shizuku_setup_hint),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                        }
-                    }
-                }
+            if (selected && expandableContent != null) {
+                Spacer(modifier = Modifier.height(10.dp))
+                expandableContent()
             }
         }
     }
@@ -591,7 +716,7 @@ private fun ReadyPage() {
 
 @Composable
 private fun OnboardingPageContent(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     title: String,
     description: String? = null,
 ) {
@@ -656,3 +781,4 @@ private fun ThemeRadio(
         )
     }
 }
+

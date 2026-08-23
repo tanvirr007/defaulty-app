@@ -130,6 +130,8 @@
     <string name="onboarding_shizuku_setup_hint">Setup Shizuku to proceed with 1-Tap Mode, or switch to Standard Mode above.</string>
     <string name="onboarding_shizuku_need_auth">Shizuku is running. Grant permission to continue.</string>
     <string name="onboarding_shizuku_need_start">Install &amp; start Shizuku via Wireless Debugging first.</string>
+    <string name="onboarding_root_ready">Root access is granted and ready for 1-tap apply.</string>
+    <string name="onboarding_root_setup_hint">Grant root access to proceed, or switch to another mode above.</string>
     <string name="onboarding_appearance_title">Choose your look</string>
     <string name="onboarding_ready_title">You\'re all set!</string>
     <string name="next">Next</string>

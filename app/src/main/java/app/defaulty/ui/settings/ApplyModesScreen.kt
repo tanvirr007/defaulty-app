@@ -28,7 +28,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.AdminPanelSettings
-import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Terminal
@@ -187,18 +186,6 @@ fun ApplyModesScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Auto-Detect
-                        ApplyModeOption(
-                            icon = Icons.Outlined.AutoAwesome,
-                            title = stringResource(R.string.apply_mode_auto),
-                            subtitle = stringResource(R.string.apply_mode_auto_desc),
-                            selected = currentApplyMode == ApplyMode.AUTO,
-                            onClick = {
-                                coroutineScope.launch { app.userPreferences.setApplyMode(ApplyMode.AUTO) }
-                            },
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-
                         // Direct Root
                         ApplyModeOption(
                             icon = Icons.Outlined.AdminPanelSettings,
@@ -230,7 +217,7 @@ fun ApplyModesScreen(
                             icon = Icons.Outlined.Settings,
                             title = stringResource(R.string.apply_mode_standard),
                             subtitle = stringResource(R.string.apply_mode_standard_desc),
-                            selected = currentApplyMode == ApplyMode.STANDARD,
+                            selected = currentApplyMode == ApplyMode.STANDARD || currentApplyMode == ApplyMode.AUTO,
                             onClick = {
                                 coroutineScope.launch { app.userPreferences.setApplyMode(ApplyMode.STANDARD) }
                             },
@@ -241,45 +228,6 @@ fun ApplyModesScreen(
 
             // Mode-specific method and setup section displayed dynamically based on selection
             when (currentApplyMode) {
-                ApplyMode.AUTO -> {
-                    item(key = "auto_detect_card") {
-                        AutoDetectCard(
-                            isRootAvailable = isRootAvailable,
-                            isShizukuActive = isShizukuActive,
-                            onRequestRoot = {
-                                coroutineScope.launch {
-                                    RootShellManager.clearCache()
-                                    isRootAvailable = withContext(Dispatchers.IO) {
-                                        RootShellManager.isRootAvailable()
-                                    }
-                                    if (isRootAvailable) {
-                                        Toast.makeText(
-                                            context,
-                                            context.getString(R.string.root_granted_toast),
-                                            Toast.LENGTH_SHORT,
-                                        ).show()
-                                    } else {
-                                        Toast.makeText(
-                                            context,
-                                            context.getString(R.string.root_not_available_toast),
-                                            Toast.LENGTH_SHORT,
-                                        ).show()
-                                    }
-                                }
-                            },
-                            onAuthorizeShizuku = {
-                                if (ShizukuManager.hasShizukuPermission()) {
-                                    isShizukuActive = true
-                                    Toast.makeText(context, context.getString(R.string.shizuku_active_badge), Toast.LENGTH_SHORT).show()
-                                } else {
-                                    ShizukuManager.requestPermission()
-                                    isShizukuActive = ShizukuManager.hasShizukuPermission()
-                                }
-                            },
-                        )
-                    }
-                }
-
                 ApplyMode.ROOT -> {
                     item(key = "root_setup") {
                         RootSetupCard(
@@ -356,7 +304,7 @@ fun ApplyModesScreen(
                     }
                 }
 
-                ApplyMode.STANDARD -> {
+                ApplyMode.STANDARD, ApplyMode.AUTO -> {
                     item(key = "standard_setup") {
                         StandardModeCard(
                             onOpenDefaultAppsSettings = {
@@ -371,162 +319,6 @@ fun ApplyModesScreen(
                                 }
                             },
                         )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AutoDetectCard(
-    isRootAvailable: Boolean,
-    isShizukuActive: Boolean,
-    onRequestRoot: () -> Unit,
-    onAuthorizeShizuku: () -> Unit,
-) {
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        ),
-        border = BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-        ),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(modifier = Modifier.padding(18.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Outlined.AutoAwesome,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.dp),
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = stringResource(R.string.auto_mode_card_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.auto_mode_card_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // Active resolution status banner
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = if (isRootAvailable || isShizukuActive) {
-                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f)
-                },
-                border = BorderStroke(
-                    1.dp,
-                    if (isRootAvailable || isShizukuActive) {
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-                    } else {
-                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                    },
-                ),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.padding(14.dp),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    Icon(
-                        imageVector = if (isRootAvailable || isShizukuActive) {
-                            Icons.Default.CheckCircle
-                        } else {
-                            Icons.Outlined.Settings
-                        },
-                        contentDescription = null,
-                        tint = if (isRootAvailable || isShizukuActive) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        modifier = Modifier.size(22.dp),
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = stringResource(R.string.auto_mode_active_method_label),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = if (isRootAvailable || isShizukuActive) {
-                                    MaterialTheme.colorScheme.primaryContainer
-                                } else {
-                                    MaterialTheme.colorScheme.surfaceContainerHigh
-                                },
-                            ) {
-                                Text(
-                                    text = when {
-                                        isRootAvailable -> stringResource(R.string.apply_mode_root)
-                                        isShizukuActive -> stringResource(R.string.apply_mode_shizuku)
-                                        else -> stringResource(R.string.apply_mode_standard)
-                                    },
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isRootAvailable || isShizukuActive) {
-                                        MaterialTheme.colorScheme.onPrimaryContainer
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurface
-                                    },
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = when {
-                                isRootAvailable -> stringResource(R.string.auto_mode_active_root_desc)
-                                isShizukuActive -> stringResource(R.string.auto_mode_active_shizuku_desc)
-                                else -> stringResource(R.string.auto_mode_active_standard_desc)
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
-                        )
-                    }
-                }
-            }
-
-            if (!isRootAvailable && !isShizukuActive) {
-                Spacer(modifier = Modifier.height(14.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    OutlinedButton(
-                        onClick = onRequestRoot,
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(stringResource(R.string.btn_request_root), maxLines = 1)
-                    }
-                    Button(
-                        onClick = onAuthorizeShizuku,
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(stringResource(R.string.btn_authorize), maxLines = 1)
                     }
                 }
             }
