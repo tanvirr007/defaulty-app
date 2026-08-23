@@ -179,4 +179,10 @@
     <string name="cd_app_icon">%1$s app icon</string>
     <string name="cd_navigate_back">Navigate back</string>
     <string name="cd_copy_command">Copy command to clipboard</string>
+    <string name="adb_pc_wireless_title">Method 1: Wireless Debugging (On-Device)</string>
+    <string name="adb_pc_wireless_desc">Requires Wi-Fi. Pair Shizuku with Android Wireless Debugging and start directly on your phone without connecting to a computer.</string>
+    <string name="adb_pc_usb_title">Method 2: PC Terminal (ADB over USB)</string>
+    <string name="adb_pc_usb_desc">Connect your phone to your PC with USB debugging enabled, then execute the command below in PowerShell or Terminal:</string>
+    <string name="adb_pc_troubleshoot_title">PC Troubleshooting</string>
+    <string name="adb_pc_troubleshoot_desc">If the terminal displays \"Permission denied\" or \"No such file\", open Shizuku on your phone, tap \"Start by connecting to a computer\", and tap \"View command\" to export the latest start script.</string>
 </resources>

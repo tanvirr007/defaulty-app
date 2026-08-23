@@ -76,7 +76,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import app.defaulty.R
 import app.defaulty.data.system.ShizukuManager
 import app.defaulty.domain.model.SupportedRole
-import app.defaulty.ui.components.AdbCommandsDialog
 import app.defaulty.ui.components.AppIcon
 import app.defaulty.ui.components.CandidateAppCard
 import app.defaulty.ui.components.DefaultyTopBar
@@ -92,6 +91,7 @@ import kotlinx.coroutines.launch
 fun DefaultAppDetailsScreen(
     role: SupportedRole,
     onNavigateBack: () -> Unit,
+    onNavigateToApplyModes: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
@@ -106,20 +106,12 @@ fun DefaultAppDetailsScreen(
     var selectedPackage by rememberSaveable(role.roleName) {
         mutableStateOf<String?>(null)
     }
-    var showAdbDialog by remember { mutableStateOf(false) }
 
     val effectiveSelectedPackage = selectedPackage ?: activeDefaultPackage
     val candidateApps = uiState.candidateApps
     val selectedCandidate = candidateApps.find { it.packageName == effectiveSelectedPackage }
     val isNonDefaultSelected = effectiveSelectedPackage != null &&
         effectiveSelectedPackage != activeDefaultPackage
-
-    if (showAdbDialog) {
-        AdbCommandsDialog(
-            role = role,
-            onDismiss = { showAdbDialog = false }
-        )
-    }
 
     // Re-query after returning from system UI (Product Rule 11)
     DisposableEffect(lifecycleOwner) {
@@ -190,7 +182,7 @@ fun DefaultAppDetailsScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showAdbDialog = true }) {
+                    IconButton(onClick = onNavigateToApplyModes) {
                         Icon(
                             imageVector = Icons.Outlined.Terminal,
                             contentDescription = stringResource(R.string.adb_commands_title),

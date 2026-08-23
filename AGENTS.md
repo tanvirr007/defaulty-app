@@ -36,12 +36,13 @@ app/src/main/java/app/defaulty/
 ├── navigation/             # Navigation destinations (Screen sealed class) & NavHost graph
 ├── theme/                  # Material 3 Color, Type, Shape & Theme providers
 └── ui/
-    ├── components/         # Shared Compose components (AppCard, Header, AdbCommandsDialog, EmptyState)
+    ├── components/         # Shared Compose components (AppIcon, DefaultAppRow, CandidateAppCard, AdbCommandsDialog)
     ├── details/            # Default role details, candidate selector & dual-mode apply logic
     ├── home/               # Primary dashboard listing active & available default roles
     ├── links/              # Domain verification / App Links management screen
     ├── onboarding/         # Onboarding setup wizard (Apply mode & Theme picker)
-    └── settings/           # Settings screen (Theme picker, Apply modes guide, Privacy, About)
+    ├── others/             # Categorized view for Media, secondary system roles & deep link hub
+    └── settings/           # Settings hub & dedicated full screens (HowItWorksScreen, ApplyModesScreen, PrivacyScreen)
 ```
 
 ---

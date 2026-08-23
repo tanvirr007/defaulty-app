@@ -27,23 +27,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
-import androidx.compose.material.icons.outlined.Android
 import androidx.compose.material.icons.outlined.BrightnessAuto
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LightMode
-import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material.icons.outlined.Storage
-import androidx.compose.material.icons.outlined.Sync
-import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.Terminal
-import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material.icons.outlined.WifiOff
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -84,14 +75,13 @@ import app.defaulty.ui.components.DefaultyTopBar
  */
 @Composable
 fun SettingsScreen(
+    onNavigateToHowItWorks: () -> Unit = {},
+    onNavigateToApplyModes: () -> Unit = {},
+    onNavigateToPrivacy: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel(),
 ) {
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val context = LocalContext.current
-
-    var showHowItWorks by remember { mutableStateOf(false) }
-    var showAdbCommands by remember { mutableStateOf(false) }
-    var showPrivacy by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -180,7 +170,7 @@ fun SettingsScreen(
                         title = stringResource(R.string.how_it_works),
                         subtitle = stringResource(R.string.how_it_works_subtitle),
                         trailingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        onClick = { showHowItWorks = true },
+                        onClick = onNavigateToHowItWorks,
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(start = 72.dp, end = 16.dp),
@@ -191,7 +181,7 @@ fun SettingsScreen(
                         title = stringResource(R.string.adb_commands_title),
                         subtitle = stringResource(R.string.adb_commands_subtitle),
                         trailingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        onClick = { showAdbCommands = true },
+                        onClick = onNavigateToApplyModes,
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(start = 72.dp, end = 16.dp),
@@ -202,7 +192,7 @@ fun SettingsScreen(
                         title = stringResource(R.string.privacy),
                         subtitle = stringResource(R.string.privacy_subtitle),
                         trailingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        onClick = { showPrivacy = true },
+                        onClick = onNavigateToPrivacy,
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(start = 72.dp, end = 16.dp),
@@ -248,17 +238,6 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
         }
-    }
-
-    // --- Dialogs ---
-    if (showHowItWorks) {
-        HowItWorksDialog(onDismiss = { showHowItWorks = false })
-    }
-    if (showAdbCommands) {
-        AdbCommandsDialog(onDismiss = { showAdbCommands = false })
-    }
-    if (showPrivacy) {
-        PrivacyDialog(onDismiss = { showPrivacy = false })
     }
 }
 
@@ -396,269 +375,6 @@ private fun SettingsCardItem(
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp),
-            )
-        }
-    }
-}
-
-@Composable
-private fun HowItWorksDialog(onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(28.dp),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        icon = {
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = RoundedCornerShape(16.dp),
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.HelpOutline,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(28.dp),
-                )
-            }
-        },
-        title = {
-            Text(
-                text = stringResource(R.string.how_it_works),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-            )
-        },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-            ) {
-                Text(
-                    text = stringResource(R.string.how_it_works_intro),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 20.sp,
-                    modifier = Modifier.padding(bottom = 14.dp),
-                )
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                    border = BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-                    ),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    ),
-                ) {
-                    Column {
-                        DialogSectionItem(
-                            icon = Icons.Outlined.Security,
-                            title = stringResource(R.string.how_it_works_point1_title),
-                            description = stringResource(R.string.how_it_works_point1_desc),
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                        )
-                        DialogSectionItem(
-                            icon = Icons.Outlined.TouchApp,
-                            title = stringResource(R.string.how_it_works_point2_title),
-                            description = stringResource(R.string.how_it_works_point2_desc),
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                        )
-                        DialogSectionItem(
-                            icon = Icons.Outlined.Sync,
-                            title = stringResource(R.string.how_it_works_point3_title),
-                            description = stringResource(R.string.how_it_works_point3_desc),
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                        )
-                        DialogSectionItem(
-                            icon = Icons.Outlined.Terminal,
-                            title = stringResource(R.string.how_it_works_point4_title),
-                            description = stringResource(R.string.how_it_works_point4_desc),
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onDismiss,
-                shape = RoundedCornerShape(14.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(46.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.close),
-                    fontWeight = FontWeight.SemiBold,
-                )
-            }
-        },
-    )
-}
-
-@Composable
-private fun PrivacyDialog(onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(28.dp),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        icon = {
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = RoundedCornerShape(16.dp),
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Shield,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(28.dp),
-                )
-            }
-        },
-        title = {
-            Text(
-                text = stringResource(R.string.privacy),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-            )
-        },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-            ) {
-                Text(
-                    text = stringResource(R.string.privacy_intro),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 20.sp,
-                    modifier = Modifier.padding(bottom = 14.dp),
-                )
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                    border = BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-                    ),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    ),
-                ) {
-                    Column {
-                        DialogSectionItem(
-                            icon = Icons.Outlined.WifiOff,
-                            title = stringResource(R.string.privacy_point1_title),
-                            description = stringResource(R.string.privacy_point1_desc),
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                        )
-                        DialogSectionItem(
-                            icon = Icons.Outlined.VisibilityOff,
-                            title = stringResource(R.string.privacy_point2_title),
-                            description = stringResource(R.string.privacy_point2_desc),
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                        )
-                        DialogSectionItem(
-                            icon = Icons.Outlined.Storage,
-                            title = stringResource(R.string.privacy_point3_title),
-                            description = stringResource(R.string.privacy_point3_desc),
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = 64.dp, end = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                        )
-                        DialogSectionItem(
-                            icon = Icons.Outlined.Android,
-                            title = stringResource(R.string.privacy_point4_title),
-                            description = stringResource(R.string.privacy_point4_desc),
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onDismiss,
-                shape = RoundedCornerShape(14.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(46.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.close),
-                    fontWeight = FontWeight.SemiBold,
-                )
-            }
-        },
-    )
-}
-
-@Composable
-private fun DialogSectionItem(
-    icon: ImageVector,
-    title: String,
-    description: String,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(38.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-                    shape = RoundedCornerShape(10.dp),
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp),
-            )
-        }
-        Spacer(modifier = Modifier.width(14.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(modifier = Modifier.height(3.dp))
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 17.sp,
             )
         }
     }

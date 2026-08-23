@@ -40,6 +40,9 @@ import app.defaulty.ui.home.HomeScreen
 import app.defaulty.ui.links.OpeningLinksScreen
 import app.defaulty.ui.onboarding.OnboardingScreen
 import app.defaulty.ui.others.OthersScreen
+import app.defaulty.ui.settings.ApplyModesScreen
+import app.defaulty.ui.settings.HowItWorksScreen
+import app.defaulty.ui.settings.PrivacyScreen
 import app.defaulty.ui.settings.SettingsScreen
 
 sealed class Screen(val route: String) {
@@ -48,6 +51,9 @@ sealed class Screen(val route: String) {
     data object Others : Screen("others")
     data object Settings : Screen("settings")
     data object Links : Screen("links")
+    data object HowItWorks : Screen("how_it_works")
+    data object ApplyModes : Screen("apply_modes")
+    data object Privacy : Screen("privacy")
     data object Details : Screen("details/{roleId}") {
         fun createRoute(role: SupportedRole): String = "details/${role.name}"
     }
@@ -217,7 +223,41 @@ fun DefaultyNavGraph(
             }
 
             composable(Screen.Settings.route) {
-                SettingsScreen()
+                SettingsScreen(
+                    onNavigateToHowItWorks = {
+                        navController.navigate(Screen.HowItWorks.route)
+                    },
+                    onNavigateToApplyModes = {
+                        navController.navigate(Screen.ApplyModes.route)
+                    },
+                    onNavigateToPrivacy = {
+                        navController.navigate(Screen.Privacy.route)
+                    },
+                )
+            }
+
+            composable(Screen.HowItWorks.route) {
+                HowItWorksScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(Screen.ApplyModes.route) {
+                ApplyModesScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(Screen.Privacy.route) {
+                PrivacyScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
             }
 
             composable(Screen.Links.route) {
@@ -242,7 +282,10 @@ fun DefaultyNavGraph(
                         role = role,
                         onNavigateBack = {
                             navController.popBackStack()
-                        }
+                        },
+                        onNavigateToApplyModes = {
+                            navController.navigate(Screen.ApplyModes.route)
+                        },
                     )
                 } else {
                     HomeScreen(

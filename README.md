@@ -81,6 +81,8 @@ Setting up Shizuku takes less than a minute and requires no PC or root on Androi
    - **Via PC (ADB over USB)**:
      ```bash
      adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh
+     # Alternative for newer Android versions / restricted storage:
+     adb shell sh /data/user_de/0/moe.shizuku.privileged.api/start.sh
      ```
    - **Via Root**:
      Open Shizuku and tap **Start** with Superuser / Magisk / KernelSU permission.
