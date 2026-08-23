@@ -21,8 +21,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material.icons.outlined.TouchApp
-import androidx.compose.material.icons.outlined.Zap
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -152,7 +152,7 @@ fun HowItWorksScreen(
             // Pillar 4: ADB / Shizuku 1-Tap Mode
             item(key = "pillar_shizuku") {
                 PillarCard(
-                    icon = Icons.Outlined.Zap,
+                    icon = Icons.Outlined.Terminal,
                     title = stringResource(R.string.how_it_works_point4_title),
                     description = stringResource(R.string.how_it_works_point4_desc),
                 )

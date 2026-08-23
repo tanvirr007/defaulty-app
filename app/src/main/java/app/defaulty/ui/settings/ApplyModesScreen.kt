@@ -189,7 +189,7 @@ fun ApplyModesScreen(
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
                         Text(
-                            text = stringResource(R.string.apply_modes_title),
+                            text = stringResource(R.string.adb_commands_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
