@@ -211,5 +211,17 @@
     <!-- Privileged status banners -->
     <string name="privileged_root_active">Root access is granted. Defaults are applied instantly in the background with 1 tap.</string>
     <string name="privileged_both_active">Both Root and Shizuku are available. Defaults are applied instantly in the background.</string>
+
+    <!-- Mode Detail Cards -->
+    <string name="standard_mode_card_title">Standard Mode</string>
+    <string name="standard_mode_card_desc">When you change a default app, Defaulty opens Android\'s official system settings and confirmation dialogs. No root, ADB, or background services are required.</string>
+    <string name="btn_open_default_apps_settings">Open Default Apps Settings</string>
+    <string name="auto_mode_card_title">Auto-Detect Status</string>
+    <string name="auto_mode_card_desc">Uses Root or Shizuku if available, otherwise falls back to Settings.</string>
+    <string name="auto_mode_active_method_label">Active method:</string>
+    <string name="auto_mode_active_root_desc">Root granted. Changes apply instantly in 1 tap.</string>
+    <string name="auto_mode_active_shizuku_desc">Shizuku authorized. Changes apply instantly in 1 tap.</string>
+    <string name="auto_mode_active_standard_desc">No privileges detected. Changes open system Settings.</string>
 </resources>
+
 
