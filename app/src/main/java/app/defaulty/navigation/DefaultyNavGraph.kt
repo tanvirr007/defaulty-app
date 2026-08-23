@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -109,6 +110,7 @@ fun DefaultyNavGraph(
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer,
                     contentColor = MaterialTheme.colorScheme.onSurface,
+                    tonalElevation = 3.dp,
                 ) {
                     bottomNavItems.forEach { item ->
                         val selected = currentRoute == item.route
@@ -131,7 +133,12 @@ fun DefaultyNavGraph(
                                     contentDescription = stringResource(item.labelRes),
                                 )
                             },
-                            label = { Text(stringResource(item.labelRes)) },
+                            label = {
+                                Text(
+                                    text = stringResource(item.labelRes),
+                                    fontWeight = if (selected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal,
+                                )
+                            },
                         )
                     }
                 }

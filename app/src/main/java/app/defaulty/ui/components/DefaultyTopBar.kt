@@ -34,7 +34,7 @@ fun DefaultyTopBar(
     actions: (@Composable RowScope.() -> Unit)? = null,
     containerColor: Color = MaterialTheme.colorScheme.background,
     contentColor: Color = MaterialTheme.colorScheme.onBackground,
-    height: Dp = 48.dp,
+    height: Dp = 56.dp,
 ) {
     DefaultyTopBar(
         title = {
@@ -63,7 +63,7 @@ fun DefaultyTopBar(
     actions: (@Composable RowScope.() -> Unit)? = null,
     containerColor: Color = MaterialTheme.colorScheme.background,
     contentColor: Color = MaterialTheme.colorScheme.onBackground,
-    height: Dp = 48.dp,
+    height: Dp = 56.dp,
 ) {
     Surface(
         color = containerColor,

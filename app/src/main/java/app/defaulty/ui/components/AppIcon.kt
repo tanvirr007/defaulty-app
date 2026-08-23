@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -12,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
@@ -20,9 +23,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Displays an app icon from a Drawable, converting to Compose-compatible
- * ImageBitmap. Falls back to the Android icon if the drawable is null.
- *
- * No Accompanist dependency — uses direct Bitmap conversion.
+ * ImageBitmap. Falls back to the Android icon inside a tonal container if the drawable is null.
  */
 @Composable
 fun AppIcon(
@@ -30,6 +31,7 @@ fun AppIcon(
     contentDescription: String?,
     modifier: Modifier = Modifier,
     size: Dp = 40.dp,
+    clipRadius: Dp = 10.dp,
 ) {
     if (drawable != null) {
         val imageBitmap = remember(drawable) {
@@ -46,14 +48,23 @@ fun AppIcon(
             contentDescription = contentDescription,
             modifier = modifier
                 .size(size)
-                .clip(RoundedCornerShape(8.dp)),
+                .clip(RoundedCornerShape(clipRadius)),
         )
     } else {
-        Icon(
-            imageVector = Icons.Default.Android,
-            contentDescription = contentDescription,
-            modifier = modifier.size(size),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Box(
+            modifier = modifier
+                .size(size)
+                .clip(RoundedCornerShape(clipRadius))
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Default.Android,
+                contentDescription = contentDescription,
+                modifier = Modifier.size(size * 0.6f),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
+

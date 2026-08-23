@@ -12,12 +12,14 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -142,33 +144,36 @@ fun OnboardingScreen(
                 .navigationBarsPadding()
                 .padding(24.dp),
         ) {
-            // Page indicators
+            // Page indicators with expanding pill animation
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 repeat(totalPages) { index ->
-                    val color = if (index == currentPage) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.outlineVariant
-                    }
+                    val isSelected = index == currentPage
+                    val pillWidth by androidx.compose.animation.core.animateDpAsState(
+                        targetValue = if (isSelected) 28.dp else 8.dp,
+                        animationSpec = androidx.compose.animation.core.tween(durationMillis = 300),
+                        label = "pill_width",
+                    )
+                    val pillColor by androidx.compose.animation.animateColorAsState(
+                        targetValue = if (isSelected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                        },
+                        animationSpec = androidx.compose.animation.core.tween(durationMillis = 300),
+                        label = "pill_color",
+                    )
                     Box(
                         modifier = Modifier
-                            .padding(horizontal = 4.dp)
-                            .size(8.dp)
-                            .then(
-                                Modifier
-                                    .height(8.dp)
-                                    .width(8.dp)
-                            ),
-                    ) {
-                        androidx.compose.foundation.Canvas(
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            drawCircle(color = color)
-                        }
-                    }
+                            .padding(horizontal = 3.dp)
+                            .height(8.dp)
+                            .width(pillWidth)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(pillColor),
+                    )
                 }
             }
 

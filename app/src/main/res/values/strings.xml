@@ -169,6 +169,12 @@
     <string name="shizuku_active_banner_title">1-Tap ADB Mode Active</string>
     <string name="shizuku_active_banner_desc">Shizuku is running and authorized. Defaults are applied instantly in the background with 1 tap.</string>
 
+    <!-- Supplementary Dashboard & UI strings -->
+    <string name="configured_status_summary">%1$d of %2$d configured</string>
+    <string name="active_defaults_summary">Core defaults for browsing, communication, and system assistant</string>
+    <string name="other_defaults_section_desc">Configure media players, documents, and specialized handlers</string>
+    <string name="links_summary_count">%1$d apps handle verified web links</string>
+
     <!-- Content descriptions -->
     <string name="cd_app_icon">%1$s app icon</string>
     <string name="cd_navigate_back">Navigate back</string>

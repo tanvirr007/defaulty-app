@@ -1,6 +1,7 @@
 package app.defaulty.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,7 +42,7 @@ import app.defaulty.domain.model.CandidateAppInfo
 
 /**
  * Reusable card displaying an installed candidate app with interactive
- * selection (RadioButton), default badge (if active default), and quick actions.
+ * selection (RadioButton), active default badge, and quick action buttons.
  */
 @Composable
 fun CandidateAppCard(
@@ -55,19 +56,21 @@ fun CandidateAppCard(
 ) {
     val isHighlighted = selected || app.isDefault
     val containerColor by animateColorAsState(
-        targetValue = if (isHighlighted) {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerLow
+        targetValue = when {
+            selected -> MaterialTheme.colorScheme.surfaceContainerHigh
+            app.isDefault -> MaterialTheme.colorScheme.surfaceContainer
+            else -> MaterialTheme.colorScheme.surfaceContainerLow
         },
+        animationSpec = tween(200),
         label = "containerColor",
     )
     val borderColor by animateColorAsState(
-        targetValue = if (isHighlighted) {
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
-        } else {
-            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+        targetValue = when {
+            selected -> MaterialTheme.colorScheme.primary
+            app.isDefault -> MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+            else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
         },
+        animationSpec = tween(200),
         label = "borderColor",
     )
 
@@ -81,17 +84,17 @@ fun CandidateAppCard(
                     Modifier
                 }
             ),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.outlinedCardColors(
             containerColor = containerColor,
         ),
         border = BorderStroke(
-            width = if (isHighlighted) 1.5.dp else 1.dp,
+            width = if (selected) 1.5.dp else 1.dp,
             color = borderColor,
         ),
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(16.dp),
         ) {
             // App Header Row: Radio Button + Icon + Label/Package + Badges
             Row(
@@ -104,16 +107,17 @@ fun CandidateAppCard(
                         onClick = onSelect,
                         modifier = Modifier.size(24.dp),
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
                 }
 
                 AppIcon(
                     drawable = app.appIcon,
                     contentDescription = stringResource(R.string.cd_app_icon, app.appLabel),
                     size = 44.dp,
+                    clipRadius = 12.dp,
                 )
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(14.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -175,7 +179,7 @@ fun CandidateAppCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Action Buttons: Symmetrical 3-button row (Info, Links, Open)
             Row(
@@ -186,7 +190,7 @@ fun CandidateAppCard(
                 OutlinedButton(
                     onClick = onOpenSettings,
                     shape = RoundedCornerShape(10.dp),
-                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
                     modifier = Modifier
                         .weight(1f)
                         .height(36.dp),
@@ -194,12 +198,13 @@ fun CandidateAppCard(
                     Icon(
                         imageVector = Icons.Outlined.Info,
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(15.dp),
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = stringResource(R.string.action_info),
                         style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Medium,
                         maxLines = 1,
                     )
                 }
@@ -207,7 +212,7 @@ fun CandidateAppCard(
                 OutlinedButton(
                     onClick = onOpenLinks,
                     shape = RoundedCornerShape(10.dp),
-                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
                     modifier = Modifier
                         .weight(1f)
                         .height(36.dp),
@@ -215,12 +220,13 @@ fun CandidateAppCard(
                     Icon(
                         imageVector = Icons.Default.Link,
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(15.dp),
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = stringResource(R.string.action_links),
                         style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Medium,
                         maxLines = 1,
                     )
                 }
@@ -228,7 +234,7 @@ fun CandidateAppCard(
                 FilledTonalButton(
                     onClick = onLaunch,
                     shape = RoundedCornerShape(10.dp),
-                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
                     modifier = Modifier
                         .weight(1f)
                         .height(36.dp),
@@ -236,7 +242,7 @@ fun CandidateAppCard(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                         contentDescription = null,
-                        modifier = Modifier.size(15.dp),
+                        modifier = Modifier.size(14.dp),
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
@@ -250,4 +256,5 @@ fun CandidateAppCard(
         }
     }
 }
+
 
