@@ -1,6 +1,5 @@
 package app.defaulty.ui.components
 
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -35,7 +34,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,15 +51,9 @@ import app.defaulty.R
 import app.defaulty.data.system.ShizukuManager
 import app.defaulty.domain.model.SupportedRole
 
-data class AdbCommandItem(
-    val title: String,
-    val description: String,
-    val command: String,
-)
-
 /**
  * Dialog displaying the 2 Apply Modes (Standard vs ADB / Shizuku),
- * step-by-step setup guide for 1-Tap Mode, and quick terminal reference commands.
+ * step-by-step setup guide for 1-Tap Mode, and the PC ADB start command for Shizuku.
  */
 @Composable
 fun AdbCommandsDialog(
@@ -71,34 +63,7 @@ fun AdbCommandsDialog(
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
     val isShizukuActive = ShizukuManager.hasShizukuPermission()
-
-    val commandItems = listOf(
-        AdbCommandItem(
-            title = "Browser (e.g. Brave)",
-            description = "Assign default web browser",
-            command = "cmd role add-role-holder android.app.role.BROWSER com.brave.browser 0",
-        ),
-        AdbCommandItem(
-            title = "Phone / Dialer (e.g. Google Phone)",
-            description = "Assign default dialer app",
-            command = "cmd role add-role-holder android.app.role.DIALER com.google.android.dialer 0",
-        ),
-        AdbCommandItem(
-            title = "SMS / Messaging (e.g. Google Messages)",
-            description = "Assign default text messaging app",
-            command = "cmd role add-role-holder android.app.role.SMS com.google.android.apps.messaging 0",
-        ),
-        AdbCommandItem(
-            title = "Home Launcher",
-            description = "Assign default home screen launcher",
-            command = "cmd package set-home-activity com.teslacoilsw.launcher/.NovaLauncher",
-        ),
-        AdbCommandItem(
-            title = "Digital Assistant (e.g. Google)",
-            description = "Assign default voice and digital assistant",
-            command = "cmd role add-role-holder android.app.role.ASSISTANT com.google.android.googlequicksearchbox 0",
-        ),
-    )
+    val shizukuStartCommand = "adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh"
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -295,9 +260,7 @@ fun AdbCommandsDialog(
                         if (launchIntent != null) {
                             try {
                                 context.startActivity(launchIntent)
-                            } catch (e: Exception) {
-                                // Ignore
-                            }
+                            } catch (_: Exception) {}
                         } else {
                             try {
                                 val storeIntent = Intent(
@@ -305,7 +268,7 @@ fun AdbCommandsDialog(
                                     Uri.parse("https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api"),
                                 )
                                 context.startActivity(storeIntent)
-                            } catch (e: Exception) {
+                            } catch (_: Exception) {
                                 Toast.makeText(context, context.getString(R.string.no_browser_found), Toast.LENGTH_SHORT).show()
                             }
                         }
@@ -323,7 +286,7 @@ fun AdbCommandsDialog(
                     onAction = {
                         try {
                             context.startActivity(Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             Toast.makeText(context, context.getString(R.string.unable_to_open_settings), Toast.LENGTH_SHORT).show()
                         }
                     },
@@ -348,30 +311,28 @@ fun AdbCommandsDialog(
 
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // Quick ADB Terminal Commands Reference
+                // Start Shizuku via PC ADB Command Reference
                 Text(
-                    text = "ADB Shell Commands Reference",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
+                    text = stringResource(R.string.adb_start_shizuku_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                commandItems.forEach { item ->
-                    AdbCommandCardItem(
-                        item = item,
-                        onCopy = {
-                            clipboardManager.setText(AnnotatedString(item.command))
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.adb_command_copied),
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                        },
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
+                UniversalAdbCommandCard(
+                    description = stringResource(R.string.adb_start_shizuku_desc),
+                    command = shizukuStartCommand,
+                    onCopy = {
+                        clipboardManager.setText(AnnotatedString(shizukuStartCommand))
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.adb_command_copied),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    },
+                )
             }
         },
         confirmButton = {
@@ -445,8 +406,9 @@ private fun GuideStepCard(
 }
 
 @Composable
-fun AdbCommandCardItem(
-    item: AdbCommandItem,
+private fun UniversalAdbCommandCard(
+    description: String,
+    command: String,
     onCopy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -459,25 +421,18 @@ fun AdbCommandCardItem(
         ),
         modifier = modifier.fillMaxWidth(),
     ) {
-        Column(modifier = Modifier.padding(10.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = item.title,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = item.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
 
                 IconButton(
                     onClick = onCopy,
@@ -492,10 +447,10 @@ fun AdbCommandCardItem(
                 }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Surface(
-                shape = RoundedCornerShape(6.dp),
+                shape = RoundedCornerShape(8.dp),
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -503,13 +458,14 @@ fun AdbCommandCardItem(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = item.command,
+                        text = command,
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.primary,
                     )
                 }

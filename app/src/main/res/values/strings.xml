@@ -151,6 +151,9 @@
     <string name="shizuku_active_badge">1-Tap Active</string>
     <string name="shizuku_setup_button">Enable 1-Tap Apply</string>
     <string name="view_all_adb_commands">View commands</string>
+    <string name="adb_start_shizuku_title">Start Shizuku via PC (ADB over USB)</string>
+    <string name="adb_start_shizuku_desc">Run this command in your PC terminal to start Shizuku:</string>
+    <string name="adb_start_shizuku_cmd">adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh</string>
     <string name="how_it_works_point4_title">ADB / Shizuku Mode</string>
     <string name="how_it_works_point4_desc">Enable Shizuku to set default apps instantly with a single tap.</string>
     <string name="shizuku_guide_title">How to Enable 1-Tap Apply</string>
