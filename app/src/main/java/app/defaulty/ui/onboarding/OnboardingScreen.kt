@@ -1,5 +1,10 @@
 package app.defaulty.ui.onboarding
 
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -22,12 +27,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.outlined.Terminal
@@ -40,12 +46,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -53,18 +63,22 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.defaulty.R
 import app.defaulty.data.preferences.ThemeMode
 import app.defaulty.data.system.ShizukuManager
+import rikka.shizuku.Shizuku
 
 /**
  * First-time setup wizard (Spec Section 11).
  *
  * 4 pages:
  *   1. Welcome — what the app does
- *   2. Apply Mode — Standard Mode vs 1-Tap ADB/Shizuku Mode
+ *   2. Apply Mode — Standard Mode vs 1-Tap ADB/Shizuku Mode (requires Shizuku before advancing)
  *   3. Appearance — System/Light/Dark selection
  *   4. Finished — ready to go
  *
@@ -79,6 +93,44 @@ fun OnboardingScreen(
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     var currentPage by rememberSaveable { mutableIntStateOf(0) }
     val totalPages = 4
+
+    var isShizukuActive by remember { mutableStateOf(ShizukuManager.hasShizukuPermission()) }
+    var isShizukuAvailable by remember { mutableStateOf(ShizukuManager.isShizukuAvailable()) }
+    var selectedMode by rememberSaveable { mutableIntStateOf(if (isShizukuActive) 1 else 0) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                isShizukuActive = ShizukuManager.hasShizukuPermission()
+                isShizukuAvailable = ShizukuManager.isShizukuAvailable()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    DisposableEffect(Unit) {
+        val listener = Shizuku.OnRequestPermissionResultListener { _, grantResult ->
+            isShizukuActive = grantResult == PackageManager.PERMISSION_GRANTED
+            isShizukuAvailable = ShizukuManager.isShizukuAvailable()
+        }
+        try {
+            Shizuku.addRequestPermissionResultListener(listener)
+        } catch (_: Throwable) {}
+        onDispose {
+            try {
+                Shizuku.removeRequestPermissionResultListener(listener)
+            } catch (_: Throwable) {}
+        }
+    }
+
+    val canProceed = when (currentPage) {
+        1 -> selectedMode == 0 || isShizukuActive
+        else -> true
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -135,7 +187,12 @@ fun OnboardingScreen(
             ) { page ->
                 when (page) {
                     0 -> WelcomePage()
-                    1 -> ChooseModePage()
+                    1 -> ChooseModePage(
+                        selectedMode = selectedMode,
+                        onModeSelect = { selectedMode = it },
+                        isShizukuActive = isShizukuActive,
+                        isShizukuAvailable = isShizukuAvailable,
+                    )
                     2 -> AppearancePage(
                         themeMode = themeMode,
                         onThemeModeChange = viewModel::setThemeMode,
@@ -158,7 +215,10 @@ fun OnboardingScreen(
                 }
 
                 if (currentPage < totalPages - 1) {
-                    Button(onClick = { currentPage++ }) {
+                    Button(
+                        onClick = { currentPage++ },
+                        enabled = canProceed,
+                    ) {
                         Text(stringResource(R.string.next))
                     }
                 } else {
@@ -187,13 +247,18 @@ private fun WelcomePage() {
 }
 
 @Composable
-private fun ChooseModePage() {
-    val isShizukuActive = ShizukuManager.hasShizukuPermission()
-    val isShizukuAvailable = ShizukuManager.isShizukuAvailable()
-    var selectedMode by rememberSaveable { mutableIntStateOf(if (isShizukuActive) 1 else 0) }
+private fun ChooseModePage(
+    selectedMode: Int,
+    onModeSelect: (Int) -> Unit,
+    isShizukuActive: Boolean,
+    isShizukuAvailable: Boolean,
+) {
+    val context = LocalContext.current
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
@@ -234,7 +299,7 @@ private fun ChooseModePage() {
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { selectedMode = 0 },
+                .clickable { onModeSelect(0) },
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -242,7 +307,7 @@ private fun ChooseModePage() {
             ) {
                 RadioButton(
                     selected = selectedMode == 0,
-                    onClick = { selectedMode = 0 },
+                    onClick = { onModeSelect(0) },
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -273,7 +338,7 @@ private fun ChooseModePage() {
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { selectedMode = 1 },
+                .clickable { onModeSelect(1) },
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(
@@ -281,7 +346,7 @@ private fun ChooseModePage() {
                 ) {
                     RadioButton(
                         selected = selectedMode == 1,
-                        onClick = { selectedMode = 1 },
+                        onClick = { onModeSelect(1) },
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -316,14 +381,119 @@ private fun ChooseModePage() {
                     }
                 }
 
-                if (selectedMode == 1 && !isShizukuActive && isShizukuAvailable) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    OutlinedButton(
-                        onClick = { ShizukuManager.requestPermission() },
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(stringResource(R.string.shizuku_setup_button))
+                if (selectedMode == 1) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    if (isShizukuActive) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.onboarding_shizuku_ready),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                )
+                            }
+                        }
+                    } else {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text(
+                                    text = if (isShizukuAvailable) {
+                                        stringResource(R.string.onboarding_shizuku_need_auth)
+                                    } else {
+                                        stringResource(R.string.onboarding_shizuku_need_start)
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                if (isShizukuAvailable) {
+                                    Button(
+                                        onClick = { ShizukuManager.requestPermission() },
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier.fillMaxWidth(),
+                                    ) {
+                                        Text(stringResource(R.string.btn_authorize))
+                                    }
+                                } else {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    ) {
+                                        OutlinedButton(
+                                            onClick = {
+                                                val launchIntent = context.packageManager.getLaunchIntentForPackage("moe.shizuku.privileged.api")
+                                                if (launchIntent != null) {
+                                                    try {
+                                                        context.startActivity(launchIntent)
+                                                    } catch (_: Exception) {}
+                                                } else {
+                                                    try {
+                                                        val storeIntent = Intent(
+                                                            Intent.ACTION_VIEW,
+                                                            Uri.parse("https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api"),
+                                                        )
+                                                        context.startActivity(storeIntent)
+                                                    } catch (_: Exception) {
+                                                        Toast.makeText(context, context.getString(R.string.no_browser_found), Toast.LENGTH_SHORT).show()
+                                                    }
+                                                }
+                                            },
+                                            shape = RoundedCornerShape(8.dp),
+                                            modifier = Modifier.weight(1f),
+                                        ) {
+                                            Text(stringResource(R.string.btn_open_shizuku), maxLines = 1)
+                                        }
+
+                                        OutlinedButton(
+                                            onClick = {
+                                                try {
+                                                    val devIntent = Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+                                                    context.startActivity(devIntent)
+                                                } catch (_: Exception) {
+                                                    try {
+                                                        val settingsIntent = Intent(Settings.ACTION_SETTINGS)
+                                                        context.startActivity(settingsIntent)
+                                                    } catch (_: Exception) {}
+                                                }
+                                            },
+                                            shape = RoundedCornerShape(8.dp),
+                                            modifier = Modifier.weight(1f),
+                                        ) {
+                                            Text(stringResource(R.string.btn_open_dev_options), maxLines = 1)
+                                        }
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                Text(
+                                    text = stringResource(R.string.onboarding_shizuku_setup_hint),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
                     }
                 }
             }
