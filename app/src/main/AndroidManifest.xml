@@ -41,6 +41,9 @@
         <package android:name="moe.shizuku.privileged.api" />
     </queries>
 
+    <!-- Shizuku: privileged ADB shell permission -->
+    <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
+
     <application
         android:name=".DefaultyApp"
         android:allowBackup="true"
@@ -49,6 +52,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Defaulty.Splash">
+
+        <!-- Shizuku IPC binder provider (required for on-device ADB shell detection) -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
 
         <activity
             android:name=".MainActivity"

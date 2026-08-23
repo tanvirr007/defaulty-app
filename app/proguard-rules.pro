@@ -24,4 +24,5 @@
 # Shizuku
 -keep class * extends rikka.shizuku.ShizukuProvider { *; }
 -keep class rikka.shizuku.** { *; }
+-keepclassmembers class rikka.shizuku.Shizuku { *; }
 -keep class dev.rikka.shizuku.** { *; }
