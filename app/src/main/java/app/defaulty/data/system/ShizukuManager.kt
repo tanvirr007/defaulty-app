@@ -47,7 +47,11 @@ object ShizukuManager {
      */
     fun requestPermission(requestCode: Int = SHIZUKU_PERMISSION_REQUEST_CODE) {
         try {
-            if (isShizukuAvailable() && !hasShizukuPermission()) {
+            if (isShizukuAvailable()) {
+                if (!hasShizukuPermission()) {
+                    Shizuku.requestPermission(requestCode)
+                }
+            } else {
                 Shizuku.requestPermission(requestCode)
             }
         } catch (e: Throwable) {

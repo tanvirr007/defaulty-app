@@ -100,12 +100,19 @@ fun OnboardingScreen(
     var isShizukuAvailable by remember { mutableStateOf(ShizukuManager.isShizukuAvailable()) }
     var selectedMode by rememberSaveable { mutableIntStateOf(if (isShizukuActive) 1 else 0) }
 
+    val refreshShizukuStatus = {
+        isShizukuActive = ShizukuManager.hasShizukuPermission()
+        isShizukuAvailable = ShizukuManager.isShizukuAvailable()
+        if (isShizukuActive) {
+            selectedMode = 1
+        }
+    }
+
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                isShizukuActive = ShizukuManager.hasShizukuPermission()
-                isShizukuAvailable = ShizukuManager.isShizukuAvailable()
+                refreshShizukuStatus()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -115,15 +122,26 @@ fun OnboardingScreen(
     }
 
     DisposableEffect(Unit) {
+        val binderReceivedListener = Shizuku.OnBinderReceivedListener {
+            refreshShizukuStatus()
+        }
+        val binderDeadListener = Shizuku.OnBinderDeadListener {
+            refreshShizukuStatus()
+        }
         val listener = Shizuku.OnRequestPermissionResultListener { _, grantResult ->
-            isShizukuActive = grantResult == PackageManager.PERMISSION_GRANTED
+            isShizukuActive = grantResult == PackageManager.PERMISSION_GRANTED || ShizukuManager.hasShizukuPermission()
             isShizukuAvailable = ShizukuManager.isShizukuAvailable()
+            if (isShizukuActive) selectedMode = 1
         }
         try {
+            Shizuku.addBinderReceivedListenerSticky(binderReceivedListener)
+            Shizuku.addBinderDeadListener(binderDeadListener)
             Shizuku.addRequestPermissionResultListener(listener)
         } catch (_: Throwable) {}
         onDispose {
             try {
+                Shizuku.removeBinderReceivedListener(binderReceivedListener)
+                Shizuku.removeBinderDeadListener(binderDeadListener)
                 Shizuku.removeRequestPermissionResultListener(listener)
             } catch (_: Throwable) {}
         }
@@ -432,15 +450,16 @@ private fun ChooseModePage(
 
                                 Spacer(modifier = Modifier.height(8.dp))
 
-                                if (isShizukuAvailable) {
-                                    Button(
-                                        onClick = { ShizukuManager.requestPermission() },
-                                        shape = RoundedCornerShape(8.dp),
-                                        modifier = Modifier.fillMaxWidth(),
-                                    ) {
-                                        Text(stringResource(R.string.btn_authorize))
-                                    }
-                                } else {
+                                Button(
+                                    onClick = { ShizukuManager.requestPermission() },
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    Text(stringResource(R.string.btn_authorize))
+                                }
+
+                                if (!isShizukuAvailable) {
+                                    Spacer(modifier = Modifier.height(8.dp))
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.spacedBy(8.dp),

@@ -35,8 +35,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -50,6 +54,8 @@ import androidx.compose.ui.unit.sp
 import app.defaulty.R
 import app.defaulty.data.system.ShizukuManager
 import app.defaulty.domain.model.SupportedRole
+import rikka.shizuku.Shizuku
+import android.content.pm.PackageManager
 
 /**
  * Dialog displaying the 2 Apply Modes (Standard vs ADB / Shizuku),
@@ -62,8 +68,35 @@ fun AdbCommandsDialog(
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
-    val isShizukuActive = ShizukuManager.hasShizukuPermission()
+    var isShizukuActive by remember { mutableStateOf(ShizukuManager.hasShizukuPermission()) }
     val shizukuStartCommand = "adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh"
+
+    DisposableEffect(Unit) {
+        val refresh = {
+            isShizukuActive = ShizukuManager.hasShizukuPermission()
+        }
+        val binderReceivedListener = Shizuku.OnBinderReceivedListener {
+            refresh()
+        }
+        val binderDeadListener = Shizuku.OnBinderDeadListener {
+            refresh()
+        }
+        val permissionListener = Shizuku.OnRequestPermissionResultListener { _, grantResult ->
+            isShizukuActive = grantResult == PackageManager.PERMISSION_GRANTED || ShizukuManager.hasShizukuPermission()
+        }
+        try {
+            Shizuku.addBinderReceivedListenerSticky(binderReceivedListener)
+            Shizuku.addBinderDeadListener(binderDeadListener)
+            Shizuku.addRequestPermissionResultListener(permissionListener)
+        } catch (_: Throwable) {}
+        onDispose {
+            try {
+                Shizuku.removeBinderReceivedListener(binderReceivedListener)
+                Shizuku.removeBinderDeadListener(binderDeadListener)
+                Shizuku.removeRequestPermissionResultListener(permissionListener)
+            } catch (_: Throwable) {}
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -301,10 +334,12 @@ fun AdbCommandsDialog(
                     description = stringResource(R.string.shizuku_guide_step3_desc),
                     actionLabel = stringResource(R.string.btn_authorize),
                     onAction = {
-                        if (ShizukuManager.isShizukuAvailable()) {
-                            ShizukuManager.requestPermission()
+                        if (ShizukuManager.hasShizukuPermission()) {
+                            isShizukuActive = true
+                            Toast.makeText(context, context.getString(R.string.shizuku_active_badge), Toast.LENGTH_SHORT).show()
                         } else {
-                            Toast.makeText(context, "Shizuku is not running yet. Complete Step 2 first.", Toast.LENGTH_LONG).show()
+                            ShizukuManager.requestPermission()
+                            isShizukuActive = ShizukuManager.hasShizukuPermission()
                         }
                     },
                 )
