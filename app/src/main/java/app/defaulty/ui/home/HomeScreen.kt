@@ -102,37 +102,16 @@ fun HomeScreen(
             ) {
                 // Section 1: "Your defaults" (Primary grouped card)
                 if (uiState.primaryDefaults.isNotEmpty()) {
-                    val configuredCount = uiState.primaryDefaults.count { it.holderPackageName != null }
-                    val totalCount = uiState.primaryDefaults.size
-
                     item(key = "header_primary") {
-                        Row(
+                        Text(
+                            text = stringResource(R.string.your_defaults),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 4.dp, vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            Text(
-                                text = stringResource(R.string.your_defaults),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.semantics { heading() },
-                            )
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.configured_status_summary, configuredCount, totalCount),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                )
-                            }
-                        }
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                                .semantics { heading() },
+                        )
                     }
 
                     item(key = "primary_defaults_card") {
