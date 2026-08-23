@@ -51,7 +51,7 @@
     <string name="installed_candidate_apps_count">Compatible installed apps (%1$d)</string>
     <string name="select_app_hint">Select an app below to set it as default</string>
     <string name="set_as_default">Set as default</string>
-    <string name="apply_default">Apply default</string>
+    <string name="apply_default">Apply</string>
     <string name="apply_as_default_role">Set as default %1$s</string>
     <string name="apply_as_default_media">Set as default %1$s</string>
     <string name="prompt_select_in_system">Confirm selection in Android Settings</string>
