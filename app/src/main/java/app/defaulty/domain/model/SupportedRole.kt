@@ -118,12 +118,13 @@ enum class SupportedRole(
 
     /**
      * Generate standard ADB shell command to assign this role to a given package name.
+     * Uses `--user 0` flag for maximum OEM compatibility.
      */
     fun getAdbCommand(packageName: String): String {
         return if (this == HOME) {
-            "cmd role add-role-holder android.app.role.HOME $packageName 0"
+            "cmd role add-role-holder --user 0 android.app.role.HOME $packageName"
         } else {
-            "cmd role add-role-holder $roleName $packageName 0"
+            "cmd role add-role-holder --user 0 $roleName $packageName"
         }
     }
 

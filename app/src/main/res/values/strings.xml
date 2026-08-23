@@ -185,4 +185,31 @@
     <string name="adb_pc_usb_desc">Connect your phone to your PC with USB debugging enabled, then execute the command below in PowerShell or Terminal:</string>
     <string name="adb_pc_troubleshoot_title">PC Troubleshooting</string>
     <string name="adb_pc_troubleshoot_desc">If the terminal displays \"Permission denied\" or \"No such file\", open Shizuku on your phone, tap \"Start by connecting to a computer\", and tap \"View command\" to export the latest start script.</string>
+
+    <!-- Apply Mode Selector -->
+    <string name="apply_mode_selector_title">Choose Apply Mode</string>
+    <string name="apply_mode_selector_desc">Select how Defaulty applies default app changes:</string>
+    <string name="apply_mode_auto">Auto-Detect (Recommended)</string>
+    <string name="apply_mode_auto_desc">Tries Root first, then Shizuku, then Settings</string>
+    <string name="apply_mode_root">Direct Root</string>
+    <string name="apply_mode_root_desc">KernelSU / Magisk / APatch — no extra apps needed</string>
+    <string name="apply_mode_shizuku">ADB / Shizuku</string>
+    <string name="apply_mode_shizuku_desc">1-Tap via on-device ADB shell service</string>
+    <string name="apply_mode_standard">Standard</string>
+    <string name="apply_mode_standard_desc">Opens Android Settings (no privileges needed)</string>
+
+    <!-- Root status strings -->
+    <string name="root_setup_title">Root Access (KernelSU / Magisk)</string>
+    <string name="root_setup_desc">If your device is rooted via KernelSU, Magisk, or APatch, Defaulty can use root to apply defaults instantly — no Shizuku needed.</string>
+    <string name="btn_request_root">Request Root Access</string>
+    <string name="btn_recheck_root">Re-check Root Status</string>
+    <string name="root_granted_toast">Root access granted! 1-Tap Apply is ready.</string>
+    <string name="root_not_available_toast">Root not available. Try granting superuser in your root manager.</string>
+    <string name="status_available">Active</string>
+    <string name="status_granted">Granted</string>
+
+    <!-- Privileged status banners -->
+    <string name="privileged_root_active">Root access is granted. Defaults are applied instantly in the background with 1 tap.</string>
+    <string name="privileged_both_active">Both Root and Shizuku are available. Defaults are applied instantly in the background.</string>
 </resources>
+

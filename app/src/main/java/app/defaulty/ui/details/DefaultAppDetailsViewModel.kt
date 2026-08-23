@@ -7,7 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import app.defaulty.DefaultyApp
-import app.defaulty.data.system.ShizukuManager
+import app.defaulty.data.preferences.ApplyMode
+import app.defaulty.data.system.PrivilegedShellManager
 import app.defaulty.domain.model.CandidateAppInfo
 import app.defaulty.domain.model.DefaultAppInfo
 import app.defaulty.domain.model.SupportedRole
@@ -15,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -31,6 +33,9 @@ data class DetailsUiState(
  * all candidate installed applications, and provides intents
  * for changing the default via Android system settings.
  *
+ * Supports dual-mode apply via [PrivilegedShellManager]:
+ * Root (KernelSU/Magisk/APatch) and Shizuku (ADB Binder IPC).
+ *
  * Re-queries after returning from system UI (Product Rule 11).
  */
 class DefaultAppDetailsViewModel(
@@ -40,6 +45,7 @@ class DefaultAppDetailsViewModel(
 
     private val app = application as DefaultyApp
     private val repository = app.defaultAppsRepository
+    private val userPreferences = app.userPreferences
 
     private val _uiState = MutableStateFlow(DetailsUiState(role = role))
     val uiState: StateFlow<DetailsUiState> = _uiState.asStateFlow()
@@ -68,20 +74,22 @@ class DefaultAppDetailsViewModel(
     }
 
     /**
-     * Check if Shizuku is active and permission is granted.
+     * Check if 1-Tap Apply is capable with the current apply mode.
      */
-    fun isShizukuReady(): Boolean =
-        ShizukuManager.hasShizukuPermission()
+    suspend fun is1TapApplyCapable(): Boolean {
+        val mode = userPreferences.applyMode.first()
+        return PrivilegedShellManager.is1TapApplyCapable(mode)
+    }
 
     /**
-     * Apply default role directly via Shizuku (ADB shell) and refresh state.
+     * Apply default role directly via the privileged shell (Root or Shizuku)
+     * based on the current user ApplyMode preference.
+     *
+     * Refreshes state on success.
      */
-    suspend fun applyDefaultViaShizuku(packageName: String): Boolean {
-        val success = if (role == SupportedRole.HOME) {
-            ShizukuManager.applyHomeLauncher(packageName)
-        } else {
-            ShizukuManager.applyDefaultRole(role.roleName, packageName)
-        }
+    suspend fun applyDefaultViaPrivilegedShell(packageName: String): Boolean {
+        val mode = userPreferences.applyMode.first()
+        val success = PrivilegedShellManager.applyDefaultRole(role, packageName, mode)
         if (success) {
             refresh()
         }

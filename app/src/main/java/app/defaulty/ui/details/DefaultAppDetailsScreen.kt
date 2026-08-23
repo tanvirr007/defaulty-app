@@ -74,7 +74,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.defaulty.R
-import app.defaulty.data.system.ShizukuManager
 import app.defaulty.domain.model.SupportedRole
 import app.defaulty.ui.components.AppIcon
 import app.defaulty.ui.components.CandidateAppCard
@@ -275,20 +274,28 @@ fun DefaultAppDetailsScreen(
                         Button(
                             onClick = {
                                 val targetPkg = selectedCandidate?.packageName
-                                if (targetPkg != null && ShizukuManager.hasShizukuPermission()) {
+                                if (targetPkg != null) {
                                     coroutineScope.launch {
-                                        val success = viewModel.applyDefaultViaShizuku(targetPkg)
-                                        if (success) {
-                                            Toast.makeText(
-                                                context,
-                                                context.getString(R.string.apply_done),
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
-                                            selectedPackage = null
+                                        val capable = viewModel.is1TapApplyCapable()
+                                        if (capable) {
+                                            val success = viewModel.applyDefaultViaPrivilegedShell(targetPkg)
+                                            if (success) {
+                                                Toast.makeText(
+                                                    context,
+                                                    context.getString(R.string.apply_done),
+                                                    Toast.LENGTH_SHORT,
+                                                ).show()
+                                                selectedPackage = null
+                                            } else {
+                                                launchRoleChange(
+                                                    targetPkg,
+                                                    selectedCandidate.appLabel,
+                                                )
+                                            }
                                         } else {
                                             launchRoleChange(
                                                 targetPkg,
-                                                selectedCandidate?.appLabel,
+                                                selectedCandidate.appLabel,
                                             )
                                         }
                                     }

@@ -9,6 +9,18 @@
     public static ** valueOf(java.lang.String);
 }
 
+# Keep preference enums (names are persisted as strings in DataStore)
+-keepclassmembers enum app.defaulty.data.preferences.ApplyMode {
+    <fields>;
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+-keepclassmembers enum app.defaulty.data.preferences.ThemeMode {
+    <fields>;
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
 # Shizuku
 -keep class * extends rikka.shizuku.ShizukuProvider { *; }
 -keep class rikka.shizuku.** { *; }

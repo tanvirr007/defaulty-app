@@ -71,6 +71,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.defaulty.R
+import app.defaulty.data.preferences.ApplyMode
 import app.defaulty.data.preferences.ThemeMode
 import app.defaulty.data.system.ShizukuManager
 import rikka.shizuku.Shizuku
@@ -212,7 +213,15 @@ fun OnboardingScreen(
                     0 -> WelcomePage()
                     1 -> ChooseModePage(
                         selectedMode = selectedMode,
-                        onModeSelect = { selectedMode = it },
+                        onModeSelect = { mode ->
+                            selectedMode = mode
+                            // Persist apply mode when user selects in onboarding
+                            if (mode == 0) {
+                                viewModel.setApplyMode(ApplyMode.STANDARD)
+                            } else {
+                                viewModel.setApplyMode(ApplyMode.AUTO)
+                            }
+                        },
                         isShizukuActive = isShizukuActive,
                         isShizukuAvailable = isShizukuAvailable,
                     )

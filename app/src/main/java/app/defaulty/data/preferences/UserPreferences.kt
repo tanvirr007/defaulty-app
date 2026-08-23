@@ -13,6 +13,18 @@ import kotlinx.coroutines.flow.map
 /** User-selectable theme mode. */
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
+/** User-selectable apply mode for setting defaults. */
+enum class ApplyMode {
+    /** Automatically detect Root → Shizuku → Standard fallback. */
+    AUTO,
+    /** Direct root shell (KernelSU / Magisk / APatch). */
+    ROOT,
+    /** ADB / Shizuku Binder IPC. */
+    SHIZUKU,
+    /** Standard Android Settings UI (no privileges). */
+    STANDARD,
+}
+
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
     name = "user_preferences"
 )
@@ -22,12 +34,14 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
  * Only stores what is genuinely required (Spec Section 23):
  *   - Onboarding completion flag
  *   - Theme preference
+ *   - Apply mode preference
  */
 class UserPreferences(private val context: Context) {
 
     private companion object {
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val APPLY_MODE = stringPreferencesKey("apply_mode")
     }
 
     val onboardingCompleted: Flow<Boolean> = context.dataStore.data
@@ -42,6 +56,16 @@ class UserPreferences(private val context: Context) {
             }
         }
 
+    val applyMode: Flow<ApplyMode> = context.dataStore.data
+        .map { prefs ->
+            when (prefs[APPLY_MODE]) {
+                ApplyMode.ROOT.name -> ApplyMode.ROOT
+                ApplyMode.SHIZUKU.name -> ApplyMode.SHIZUKU
+                ApplyMode.STANDARD.name -> ApplyMode.STANDARD
+                else -> ApplyMode.AUTO
+            }
+        }
+
     suspend fun setOnboardingCompleted(completed: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[ONBOARDING_COMPLETED] = completed
@@ -51,6 +75,12 @@ class UserPreferences(private val context: Context) {
     suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { prefs ->
             prefs[THEME_MODE] = mode.name
+        }
+    }
+
+    suspend fun setApplyMode(mode: ApplyMode) {
+        context.dataStore.edit { prefs ->
+            prefs[APPLY_MODE] = mode.name
         }
     }
 }

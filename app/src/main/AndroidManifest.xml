@@ -37,6 +37,8 @@
         <intent>
             <action android:name="android.telecom.CallRedirectionService" />
         </intent>
+        <!-- Shizuku: package visibility for ADB shell service -->
+        <package android:name="moe.shizuku.privileged.api" />
     </queries>
 
     <application
