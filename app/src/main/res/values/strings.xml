@@ -54,7 +54,7 @@
     <string name="apply_default">Apply</string>
     <string name="apply_as_default_role">Set as default %1$s</string>
     <string name="apply_as_default_media">Set as default %1$s</string>
-    <string name="prompt_select_in_system">Confirm selection in Android Settings</string>
+    <string name="prompt_select_in_system">Confirm in Android Settings</string>
     <string name="badge_active_default">Default</string>
     <string name="badge_selected">Selected</string>
     <string name="open_app_info">App info</string>
@@ -63,7 +63,7 @@
     <string name="action_info">Info</string>
     <string name="action_links">Links</string>
     <string name="action_open">Open</string>
-    <string name="unable_to_open_settings">Unable to open system settings. Please change this default from Android Settings.</string>
+    <string name="unable_to_open_settings">Unable to open settings.</string>
     <string name="no_apps_available">No compatible apps are installed for this role.</string>
     <string name="no_compatible_apps_found">No compatible apps found on this device.</string>
 
@@ -93,7 +93,7 @@
     <string name="version_label">Version</string>
     <string name="version_subtitle">v%1$s (Build %2$d)</string>
     <string name="close">Close</string>
-    <string name="no_browser_found">No browser available to open this link.</string>
+    <string name="no_browser_found">No browser found.</string>
 
     <!-- How it works dialog -->
     <string name="how_it_works_intro">Defaulty makes it easy to view and manage default apps while adhering to Android\'s security architecture.</string>
@@ -113,20 +113,20 @@
     <string name="privacy_point3_title">On-device storage only</string>
     <string name="privacy_point3_desc">Preferences such as your theme choice are stored locally on your device using DataStore.</string>
     <string name="privacy_point4_title">Official Android APIs</string>
-    <string name="privacy_point4_desc">All app and role queries use standard public Android framework APIs with zero root access needed.</string>
+    <string name="privacy_point4_desc">Default settings are modified strictly through public Android platform APIs and local ADB binder IPC.</string>
 
     <!-- Onboarding -->
     <string name="onboarding_welcome_title">Welcome to Defaulty</string>
-    <string name="onboarding_welcome_description">A simple utility for viewing and managing your Android default applications</string>
+    <string name="onboarding_welcome_description">Take full control of your Android default apps and web link handling with a fast, privacy-first interface.</string>
     <string name="onboarding_how_title">How it works</string>
     <string name="onboarding_how_description">Use Standard Mode via Android Settings, or ADB/Shizuku Mode for instant 1-tap apply</string>
-    <string name="onboarding_mode_title">Choose Apply Mode</string>
-    <string name="onboarding_mode_description">Select how you prefer Defaulty to apply default app changes:</string>
+    <string name="onboarding_mode_title">Apply Mode</string>
+    <string name="onboarding_mode_description">Choose how you want to apply default app changes on your device.</string>
     <string name="onboarding_mode_standard">Standard Mode</string>
     <string name="onboarding_mode_standard_desc">Opens Android Settings (No setup needed)</string>
     <string name="onboarding_mode_shizuku">ADB / Shizuku Mode</string>
     <string name="onboarding_mode_shizuku_desc">1-Tap instant apply (Requires Shizuku)</string>
-    <string name="onboarding_shizuku_ready">Shizuku is active and ready for 1-tap apply.</string>
+    <string name="onboarding_shizuku_ready">Shizuku is running and authorized for 1-Tap Apply.</string>
     <string name="onboarding_shizuku_setup_hint">Setup Shizuku to proceed with 1-Tap Mode, or switch to Standard Mode above.</string>
     <string name="onboarding_shizuku_need_auth">Shizuku is running. Grant permission to continue.</string>
     <string name="onboarding_shizuku_need_start">Install &amp; start Shizuku via Wireless Debugging first.</string>
@@ -145,12 +145,13 @@
     <string name="apply_done">Done</string>
     <string name="copy_adb_command">Copy ADB command</string>
     <string name="copy_command">Copy</string>
-    <string name="adb_command_copied">Command copied to clipboard</string>
+    <string name="adb_command_copied">Copied to clipboard</string>
     <string name="mode_standard_title">Standard Mode (Zero Setup)</string>
     <string name="mode_standard_desc">Opens Android Settings to choose default app. No setup required.</string>
     <string name="mode_shizuku_title">ADB / Shizuku Mode (Setup Wizard)</string>
     <string name="mode_shizuku_desc">Applies changes instantly in 1 tap without leaving the app.</string>
-    <string name="shizuku_active_badge">1-Tap Active</string>
+    <string name="shizuku_active_badge">Active</string>
+    <string name="shizuku_authorized_toast">Shizuku authorized</string>
     <string name="shizuku_setup_button">Enable 1-Tap Apply</string>
     <string name="view_all_adb_commands">View commands</string>
     <string name="adb_start_shizuku_title">Start Shizuku via PC (ADB over USB)</string>
@@ -193,7 +194,7 @@
     <string name="apply_mode_selector_desc">Select how Defaulty applies default app changes:</string>
     <string name="apply_mode_auto">Auto-Detect (Recommended)</string>
     <string name="apply_mode_auto_desc">Tries Root first, then Shizuku, then Settings</string>
-    <string name="apply_mode_root">Direct Root</string>
+    <string name="apply_mode_root">Root</string>
     <string name="apply_mode_root_desc">KernelSU / Magisk / APatch — no extra apps needed</string>
     <string name="apply_mode_shizuku">ADB / Shizuku</string>
     <string name="apply_mode_shizuku_desc">1-Tap via on-device ADB shell service</string>
@@ -201,12 +202,12 @@
     <string name="apply_mode_standard_desc">Opens Android Settings (no privileges needed)</string>
 
     <!-- Root status strings -->
-    <string name="root_setup_title">Root Access (KernelSU / Magisk)</string>
+    <string name="root_setup_title">Root (KernelSU / Magisk)</string>
     <string name="root_setup_desc">If your device is rooted via KernelSU, Magisk, or APatch, Defaulty can use root to apply defaults instantly — no Shizuku needed.</string>
     <string name="btn_request_root">Request Root Access</string>
     <string name="btn_recheck_root">Re-check Root Status</string>
-    <string name="root_granted_toast">Root access granted! 1-Tap Apply is ready.</string>
-    <string name="root_not_available_toast">Root not available. Try granting superuser in your root manager.</string>
+    <string name="root_granted_toast">Root access granted</string>
+    <string name="root_not_available_toast">Root not available</string>
     <string name="status_available">Active</string>
     <string name="status_granted">Granted</string>
 
