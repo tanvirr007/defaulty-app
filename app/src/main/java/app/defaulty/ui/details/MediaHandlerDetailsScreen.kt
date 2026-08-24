@@ -74,6 +74,7 @@ import app.defaulty.R
 import app.defaulty.domain.model.MediaHandlerType
 import app.defaulty.ui.components.AppIcon
 import app.defaulty.ui.components.CandidateAppCard
+import app.defaulty.ui.components.DefaultyToast
 import app.defaulty.ui.components.DefaultyTopBar
 import kotlinx.coroutines.launch
 
@@ -135,11 +136,11 @@ fun MediaHandlerDetailsScreen(
         val promptTitle = context.getString(R.string.media_open_with_prompt)
         val intent = viewModel.getMediaChooserIntent(promptTitle)
         try {
-            Toast.makeText(
+            DefaultyToast.show(
                 context,
-                context.getString(R.string.media_toast_hint),
+                R.string.media_toast_hint,
                 Toast.LENGTH_LONG,
-            ).show()
+            )
             chooserLauncher.launch(intent)
         } catch (e: ActivityNotFoundException) {
             val fallback = viewModel.getFallbackSettingsIntent()
@@ -147,25 +148,22 @@ fun MediaHandlerDetailsScreen(
                 try {
                     context.startActivity(fallback)
                 } catch (ex: Exception) {
-                    Toast.makeText(
+                    DefaultyToast.show(
                         context,
-                        context.getString(R.string.unable_to_open_settings),
-                        Toast.LENGTH_LONG,
-                    ).show()
+                        R.string.unable_to_open_settings,
+                    )
                 }
             } else {
-                Toast.makeText(
+                DefaultyToast.show(
                     context,
-                    context.getString(R.string.unable_to_open_settings),
-                    Toast.LENGTH_LONG,
-                ).show()
+                    R.string.unable_to_open_settings,
+                )
             }
         } catch (e: Exception) {
-            Toast.makeText(
+            DefaultyToast.show(
                 context,
-                context.getString(R.string.unable_to_open_settings),
-                Toast.LENGTH_LONG,
-            ).show()
+                R.string.unable_to_open_settings,
+            )
         }
     }
 
@@ -201,11 +199,10 @@ fun MediaHandlerDetailsScreen(
                                 try {
                                     context.startActivity(viewModel.getAppSettingsIntent(pkg))
                                 } catch (ex: Exception) {
-                                    Toast.makeText(
+                                    DefaultyToast.show(
                                         context,
-                                        context.getString(R.string.unable_to_open_settings),
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                                        R.string.unable_to_open_settings,
+                                    )
                                 }
                             }
                         }
@@ -497,24 +494,16 @@ fun MediaHandlerDetailsScreen(
                                                 if (capable) {
                                                     val success = viewModel.clearActiveDefault(info.holderPackageName)
                                                     if (success) {
-                                                        Toast.makeText(
+                                                        selectedPackage = null
+                                                        DefaultyToast.show(
                                                             context,
-                                                            context.getString(R.string.media_default_cleared_toast),
-                                                            Toast.LENGTH_SHORT,
-                                                        ).show()
+                                                            R.string.media_default_cleared_toast,
+                                                        )
                                                     } else {
-                                                        try {
-                                                            context.startActivity(viewModel.getAppOpenByDefaultSettingsIntent(info.holderPackageName))
-                                                        } catch (e: Exception) {
-                                                            context.startActivity(viewModel.getAppSettingsIntent(info.holderPackageName))
-                                                        }
+                                                        showClearGuidanceDialog = true
                                                     }
                                                 } else {
-                                                    try {
-                                                        context.startActivity(viewModel.getAppOpenByDefaultSettingsIntent(info.holderPackageName))
-                                                    } catch (e: Exception) {
-                                                        context.startActivity(viewModel.getAppSettingsIntent(info.holderPackageName))
-                                                    }
+                                                    showClearGuidanceDialog = true
                                                 }
                                             }
                                         },
@@ -610,22 +599,20 @@ fun MediaHandlerDetailsScreen(
                             try {
                                 context.startActivity(viewModel.getAppSettingsIntent(app.packageName))
                             } catch (e: Exception) {
-                                Toast.makeText(
+                                DefaultyToast.show(
                                     context,
-                                    context.getString(R.string.unable_to_open_settings),
-                                    Toast.LENGTH_SHORT,
-                                ).show()
+                                    R.string.unable_to_open_settings,
+                                )
                             }
                         },
                         onOpenLinks = {
                             try {
                                 context.startActivity(viewModel.getManageLinksIntent(app.packageName))
                             } catch (e: Exception) {
-                                Toast.makeText(
+                                DefaultyToast.show(
                                     context,
-                                    context.getString(R.string.unable_to_open_settings),
-                                    Toast.LENGTH_SHORT,
-                                ).show()
+                                    R.string.unable_to_open_settings,
+                                )
                             }
                         },
                         onLaunch = {

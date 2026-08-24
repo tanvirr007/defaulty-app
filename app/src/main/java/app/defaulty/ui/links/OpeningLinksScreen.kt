@@ -1,7 +1,7 @@
 package app.defaulty.ui.links
 
 import android.content.ActivityNotFoundException
-import android.widget.Toast
+import app.defaulty.ui.components.DefaultyToast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -211,18 +211,16 @@ fun OpeningLinksScreen(
                                                         viewModel.createFallbackIntent(app.packageName)
                                                     )
                                                 } catch (_: Exception) {
-                                                    Toast.makeText(
+                                                    DefaultyToast.show(
                                                         context,
-                                                        context.getString(R.string.unable_to_open_settings),
-                                                        Toast.LENGTH_LONG,
-                                                    ).show()
+                                                        R.string.unable_to_open_settings,
+                                                    )
                                                 }
                                             } catch (_: Exception) {
-                                                Toast.makeText(
+                                                DefaultyToast.show(
                                                     context,
-                                                    context.getString(R.string.unable_to_open_settings),
-                                                    Toast.LENGTH_LONG,
-                                                ).show()
+                                                    R.string.unable_to_open_settings,
+                                                )
                                             }
                                         },
                                     )

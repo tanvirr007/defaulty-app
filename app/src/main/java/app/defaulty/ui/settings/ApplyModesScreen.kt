@@ -70,6 +70,7 @@ import app.defaulty.R
 import app.defaulty.data.preferences.ApplyMode
 import app.defaulty.data.system.RootShellManager
 import app.defaulty.data.system.ShizukuManager
+import app.defaulty.ui.components.DefaultyToast
 import app.defaulty.ui.components.DefaultyTopBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -188,11 +189,10 @@ fun ApplyModesScreen(
                 selectedMode = ApplyMode.SHIZUKU
                 coroutineScope.launch {
                     app.userPreferences.setApplyMode(ApplyMode.SHIZUKU)
-                    Toast.makeText(
+                    DefaultyToast.show(
                         context,
                         context.getString(R.string.mode_applied_toast, context.getString(R.string.apply_mode_shizuku)),
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                    )
                 }
             }
         }
@@ -221,17 +221,15 @@ fun ApplyModesScreen(
                     if (root) {
                         app.userPreferences.setApplyMode(ApplyMode.ROOT)
                         selectedMode = ApplyMode.ROOT
-                        Toast.makeText(
+                        DefaultyToast.show(
                             context,
                             context.getString(R.string.mode_applied_toast, context.getString(R.string.apply_mode_root)),
-                            Toast.LENGTH_SHORT,
-                        ).show()
+                        )
                     } else {
-                        Toast.makeText(
+                        DefaultyToast.show(
                             context,
-                            context.getString(R.string.root_fallback_toast),
-                            Toast.LENGTH_SHORT,
-                        ).show()
+                            R.string.root_fallback_toast,
+                        )
                         selectedMode = ApplyMode.STANDARD
                         app.userPreferences.setApplyMode(ApplyMode.STANDARD)
                     }
@@ -243,25 +241,22 @@ fun ApplyModesScreen(
                     if (shizuku) {
                         app.userPreferences.setApplyMode(ApplyMode.SHIZUKU)
                         selectedMode = ApplyMode.SHIZUKU
-                        Toast.makeText(
+                        DefaultyToast.show(
                             context,
                             context.getString(R.string.mode_applied_toast, context.getString(R.string.apply_mode_shizuku)),
-                            Toast.LENGTH_SHORT,
-                        ).show()
+                        )
                     } else {
                         if (isShizukuAvailable) {
                             ShizukuManager.requestPermission()
-                            Toast.makeText(
+                            DefaultyToast.show(
                                 context,
-                                context.getString(R.string.onboarding_shizuku_need_auth),
-                                Toast.LENGTH_SHORT,
-                            ).show()
+                                R.string.onboarding_shizuku_need_auth,
+                            )
                         } else {
-                            Toast.makeText(
+                            DefaultyToast.show(
                                 context,
-                                context.getString(R.string.shizuku_fallback_toast),
-                                Toast.LENGTH_SHORT,
-                            ).show()
+                                R.string.shizuku_fallback_toast,
+                            )
                             selectedMode = ApplyMode.STANDARD
                             app.userPreferences.setApplyMode(ApplyMode.STANDARD)
                         }
@@ -270,11 +265,10 @@ fun ApplyModesScreen(
                 ApplyMode.STANDARD, ApplyMode.AUTO -> {
                     app.userPreferences.setApplyMode(ApplyMode.STANDARD)
                     selectedMode = ApplyMode.STANDARD
-                    Toast.makeText(
+                    DefaultyToast.show(
                         context,
                         context.getString(R.string.mode_applied_toast, context.getString(R.string.apply_mode_standard)),
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                    )
                 }
             }
             isApplying = false
@@ -442,17 +436,15 @@ fun ApplyModesScreen(
                                     if (isRootAvailable) {
                                         selectedMode = ApplyMode.ROOT
                                         app.userPreferences.setApplyMode(ApplyMode.ROOT)
-                                        Toast.makeText(
+                                        DefaultyToast.show(
                                             context,
-                                            context.getString(R.string.root_granted_toast),
-                                            Toast.LENGTH_SHORT,
-                                        ).show()
+                                            R.string.root_granted_toast,
+                                        )
                                     } else {
-                                        Toast.makeText(
+                                        DefaultyToast.show(
                                             context,
-                                            context.getString(R.string.root_not_available_toast),
-                                            Toast.LENGTH_SHORT,
-                                        ).show()
+                                            R.string.root_not_available_toast,
+                                        )
                                     }
                                 }
                             },
@@ -482,7 +474,7 @@ fun ApplyModesScreen(
                                 try {
                                     context.startActivity(Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))
                                 } catch (_: Exception) {
-                                    Toast.makeText(context, context.getString(R.string.unable_to_open_settings), Toast.LENGTH_SHORT).show()
+                                    DefaultyToast.show(context, R.string.unable_to_open_settings)
                                 }
                             },
                             onAuthorize = {
@@ -491,7 +483,7 @@ fun ApplyModesScreen(
                                     selectedMode = ApplyMode.SHIZUKU
                                     coroutineScope.launch {
                                         app.userPreferences.setApplyMode(ApplyMode.SHIZUKU)
-                                        Toast.makeText(context, context.getString(R.string.shizuku_authorized_toast), Toast.LENGTH_SHORT).show()
+                                        DefaultyToast.show(context, R.string.shizuku_authorized_toast)
                                     }
                                 } else {
                                     ShizukuManager.requestPermission()
@@ -505,7 +497,7 @@ fun ApplyModesScreen(
                             shizukuStartCommand = shizukuStartCommand,
                             onCopyCommand = {
                                 clipboardManager.setText(AnnotatedString(shizukuStartCommand))
-                                Toast.makeText(context, context.getString(R.string.adb_command_copied), Toast.LENGTH_SHORT).show()
+                                DefaultyToast.show(context, R.string.adb_command_copied)
                             },
                         )
                     }
@@ -521,7 +513,7 @@ fun ApplyModesScreen(
                                     try {
                                         context.startActivity(Intent(Settings.ACTION_SETTINGS))
                                     } catch (_: Exception) {
-                                        Toast.makeText(context, context.getString(R.string.unable_to_open_settings), Toast.LENGTH_SHORT).show()
+                                        DefaultyToast.show(context, R.string.unable_to_open_settings)
                                     }
                                 }
                             },

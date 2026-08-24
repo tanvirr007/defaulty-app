@@ -79,6 +79,7 @@ import app.defaulty.R
 import app.defaulty.domain.model.SupportedRole
 import app.defaulty.ui.components.AppIcon
 import app.defaulty.ui.components.CandidateAppCard
+import app.defaulty.ui.components.DefaultyToast
 import app.defaulty.ui.components.DefaultyTopBar
 import kotlinx.coroutines.launch
 
@@ -136,11 +137,10 @@ fun DefaultAppDetailsScreen(
     val launchRoleChange: (String?, String?) -> Unit = { _, _ ->
         val intent = viewModel.getChangeDefaultIntent()
         try {
-            Toast.makeText(
+            DefaultyToast.show(
                 context,
-                context.getString(R.string.prompt_select_in_system),
-                Toast.LENGTH_SHORT,
-            ).show()
+                R.string.prompt_select_in_system,
+            )
             roleChangeLauncher.launch(intent)
         } catch (e: ActivityNotFoundException) {
             val fallback = viewModel.getFallbackSettingsIntent()
@@ -148,25 +148,22 @@ fun DefaultAppDetailsScreen(
                 try {
                     context.startActivity(fallback)
                 } catch (ex: Exception) {
-                    Toast.makeText(
+                    DefaultyToast.show(
                         context,
-                        context.getString(R.string.unable_to_open_settings),
-                        Toast.LENGTH_LONG,
-                    ).show()
+                        R.string.unable_to_open_settings,
+                    )
                 }
             } else {
-                Toast.makeText(
+                DefaultyToast.show(
                     context,
-                    context.getString(R.string.unable_to_open_settings),
-                    Toast.LENGTH_LONG,
-                ).show()
+                    R.string.unable_to_open_settings,
+                )
             }
         } catch (e: Exception) {
-            Toast.makeText(
+            DefaultyToast.show(
                 context,
-                context.getString(R.string.unable_to_open_settings),
-                Toast.LENGTH_LONG,
-            ).show()
+                R.string.unable_to_open_settings,
+            )
         }
     }
 
@@ -256,11 +253,10 @@ fun DefaultAppDetailsScreen(
                         IconButton(
                             onClick = {
                                 clipboardManager.setText(AnnotatedString(candidateCmd))
-                                Toast.makeText(
+                                DefaultyToast.show(
                                     context,
-                                    context.getString(R.string.adb_command_copied),
-                                    Toast.LENGTH_SHORT,
-                                ).show()
+                                    R.string.adb_command_copied,
+                                )
                             },
                             modifier = Modifier.size(38.dp),
                         ) {
@@ -282,11 +278,10 @@ fun DefaultAppDetailsScreen(
                                         if (capable) {
                                             val success = viewModel.applyDefaultViaPrivilegedShell(targetPkg)
                                             if (success) {
-                                                Toast.makeText(
+                                                DefaultyToast.show(
                                                     context,
-                                                    context.getString(R.string.apply_done),
-                                                    Toast.LENGTH_SHORT,
-                                                ).show()
+                                                    R.string.apply_done,
+                                                )
                                                 selectedPackage = null
                                             } else {
                                                 launchRoleChange(
@@ -472,11 +467,10 @@ fun DefaultAppDetailsScreen(
                                                 if (capable) {
                                                     val success = viewModel.clearDefaultViaPrivilegedShell()
                                                     if (success) {
-                                                        Toast.makeText(
+                                                        DefaultyToast.show(
                                                             context,
-                                                            context.getString(R.string.role_cleared_toast),
-                                                            Toast.LENGTH_SHORT,
-                                                        ).show()
+                                                            R.string.role_cleared_toast,
+                                                        )
                                                         selectedPackage = null
                                                     } else {
                                                         launchRoleChange(null, null)
@@ -576,22 +570,20 @@ fun DefaultAppDetailsScreen(
                             try {
                                 context.startActivity(viewModel.getAppSettingsIntent(app.packageName))
                             } catch (e: Exception) {
-                                Toast.makeText(
+                                DefaultyToast.show(
                                     context,
-                                    context.getString(R.string.unable_to_open_settings),
-                                    Toast.LENGTH_SHORT,
-                                ).show()
+                                    R.string.unable_to_open_settings,
+                                )
                             }
                         },
                         onOpenLinks = {
                             try {
                                 context.startActivity(viewModel.getManageLinksIntent(app.packageName))
                             } catch (e: Exception) {
-                                Toast.makeText(
+                                DefaultyToast.show(
                                     context,
-                                    context.getString(R.string.unable_to_open_settings),
-                                    Toast.LENGTH_SHORT,
-                                ).show()
+                                    R.string.unable_to_open_settings,
+                                )
                             }
                         },
                         onLaunch = {

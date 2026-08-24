@@ -120,10 +120,10 @@ class MediaHandlerDetailsViewModel(
         repository.createManageLinksIntent(packageName)
 
     /**
-     * Intent to open Open by Default settings for clearing defaults.
+     * Intent to open App Info settings for clearing defaults.
      */
     fun getAppOpenByDefaultSettingsIntent(packageName: String): Intent =
-        repository.createManageLinksIntent(packageName)
+        repository.createAppSettingsIntent(packageName)
 
     /** Factory for creating this ViewModel with a specific media handler type. */
     class Factory(

@@ -158,10 +158,10 @@ object ShizukuManager {
      */
     suspend fun clearPackagePreferredActivities(packageName: String): Boolean {
         if (!hasShizukuPermission()) return false
-        val primaryCmd = arrayOf("cmd", "package", "clear-package-preferred-activities", "--user", "0", packageName)
+        val primaryCmd = arrayOf("cmd", "package", "clear-package-preferred-activities", packageName)
         if (exec(primaryCmd)) return true
 
-        val fallbackCmd = arrayOf("pm", "clear-package-preferred-activities", packageName)
+        val fallbackCmd = arrayOf("sh", "-c", "pm clear-package-preferred-activities $packageName")
         return exec(fallbackCmd)
     }
 
@@ -170,7 +170,7 @@ object ShizukuManager {
      */
     suspend fun removeRoleHolder(roleName: String, packageName: String): Boolean {
         if (!hasShizukuPermission()) return false
-        val primaryCmd = arrayOf("cmd", "role", "remove-role-holder", "--user", "0", roleName, packageName, "0")
+        val primaryCmd = arrayOf("cmd", "role", "remove-role-holder", "--user", "0", roleName, packageName)
         if (exec(primaryCmd)) return true
 
         val fallbackCmd = arrayOf("cmd", "role", "remove-role-holder", roleName, packageName, "0")
@@ -182,7 +182,7 @@ object ShizukuManager {
      */
     suspend fun clearRoleHolders(roleName: String): Boolean {
         if (!hasShizukuPermission()) return false
-        val primaryCmd = arrayOf("cmd", "role", "clear-role-holders", "--user", "0", roleName, "0")
+        val primaryCmd = arrayOf("cmd", "role", "clear-role-holders", "--user", "0", roleName)
         if (exec(primaryCmd)) return true
 
         val fallbackCmd = arrayOf("cmd", "role", "clear-role-holders", roleName, "0")

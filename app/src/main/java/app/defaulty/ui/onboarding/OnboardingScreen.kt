@@ -4,7 +4,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
-import android.widget.Toast
+import app.defaulty.ui.components.DefaultyToast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
@@ -530,7 +530,7 @@ private fun ChooseModePage(
                                                 )
                                                 context.startActivity(storeIntent)
                                             } catch (_: Exception) {
-                                                Toast.makeText(context, context.getString(R.string.no_browser_found), Toast.LENGTH_SHORT).show()
+                                                DefaultyToast.show(context, R.string.no_browser_found)
                                             }
                                         }
                                     },

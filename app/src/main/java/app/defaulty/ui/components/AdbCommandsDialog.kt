@@ -3,7 +3,6 @@ package app.defaulty.ui.components
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -304,7 +303,7 @@ fun AdbCommandsDialog(
                                 )
                                 context.startActivity(storeIntent)
                             } catch (_: Exception) {
-                                Toast.makeText(context, context.getString(R.string.no_browser_found), Toast.LENGTH_SHORT).show()
+                                DefaultyToast.show(context, R.string.no_browser_found)
                             }
                         }
                     },
@@ -322,7 +321,7 @@ fun AdbCommandsDialog(
                         try {
                             context.startActivity(Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))
                         } catch (_: Exception) {
-                            Toast.makeText(context, context.getString(R.string.unable_to_open_settings), Toast.LENGTH_SHORT).show()
+                            DefaultyToast.show(context, R.string.unable_to_open_settings)
                         }
                     },
                 )
@@ -339,7 +338,7 @@ fun AdbCommandsDialog(
                     onAction = {
                         if (ShizukuManager.hasShizukuPermission()) {
                             isShizukuActive = true
-                            Toast.makeText(context, context.getString(R.string.shizuku_authorized_toast), Toast.LENGTH_SHORT).show()
+                            DefaultyToast.show(context, R.string.shizuku_authorized_toast)
                         } else {
                             ShizukuManager.requestPermission()
                             isShizukuActive = ShizukuManager.hasShizukuPermission()
@@ -364,11 +363,10 @@ fun AdbCommandsDialog(
                     command = shizukuStartCommand,
                     onCopy = {
                         clipboardManager.setText(AnnotatedString(shizukuStartCommand))
-                        Toast.makeText(
+                        DefaultyToast.show(
                             context,
-                            context.getString(R.string.adb_command_copied),
-                            Toast.LENGTH_SHORT,
-                        ).show()
+                            R.string.adb_command_copied,
+                        )
                     },
                 )
             }

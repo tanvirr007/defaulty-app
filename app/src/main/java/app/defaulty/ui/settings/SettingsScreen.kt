@@ -7,7 +7,6 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -45,9 +44,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -58,20 +54,20 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.defaulty.BuildConfig
 import app.defaulty.R
+import app.defaulty.data.preferences.ApplyMode
 import app.defaulty.data.preferences.ThemeMode
-import app.defaulty.ui.components.AdbCommandsDialog
+import app.defaulty.ui.components.DefaultyToast
 import app.defaulty.ui.components.DefaultyTopBar
 
 /**
  * Settings screen.
  *
  * Appearance: System / Light / Dark (radio buttons inside Card container, persisted to DataStore).
- * About: How it works · ADB & Terminal Commands · Privacy · Source Code · Version.
+ * About: How it works · Apply Modes · Privacy · Source Code · Version.
  */
 @Composable
 fun SettingsScreen(
@@ -81,7 +77,15 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = viewModel(),
 ) {
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+    val applyMode by viewModel.applyMode.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    val applyModeSubtitle = when (applyMode) {
+        ApplyMode.STANDARD -> stringResource(R.string.apply_mode_standard)
+        ApplyMode.SHIZUKU -> stringResource(R.string.apply_mode_shizuku)
+        ApplyMode.ROOT -> stringResource(R.string.apply_mode_root)
+        ApplyMode.AUTO -> stringResource(R.string.apply_mode_standard)
+    }
 
     Scaffold(
         topBar = {
@@ -179,7 +183,7 @@ fun SettingsScreen(
                     SettingsCardItem(
                         icon = Icons.Outlined.Terminal,
                         title = stringResource(R.string.adb_commands_title),
-                        subtitle = stringResource(R.string.adb_commands_subtitle),
+                        subtitle = applyModeSubtitle,
                         trailingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         onClick = onNavigateToApplyModes,
                     )
@@ -211,11 +215,11 @@ fun SettingsScreen(
                             try {
                                 context.startActivity(intent)
                             } catch (e: ActivityNotFoundException) {
-                                Toast.makeText(
+                                DefaultyToast.show(
                                     context,
                                     context.getString(R.string.no_browser_found),
                                     Toast.LENGTH_SHORT,
-                                ).show()
+                                )
                             }
                         },
                     )
