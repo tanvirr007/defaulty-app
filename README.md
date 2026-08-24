@@ -14,7 +14,7 @@
 
 <br/>
 
-[Download Latest APK](https://github.com/tanvirr007/defaulty-app/releases/latest/download/Defaulty.apk) • [Why Defaulty?](#why-defaulty) • [Features](#key-features) • [Supported Roles](#supported-roles) • [Apply Modes](#apply-modes) • [Architecture](#architecture--tech-stack) • [Getting Started](#getting-started) • [License](#license)
+[Download Latest APK](https://github.com/tanvirr007/defaulty-app/releases/latest/download/Defaulty.apk) • [Screenshots](#screenshots) • [Why Defaulty?](#why-defaulty) • [Features](#key-features) • [Supported Roles](#supported-roles) • [Apply Modes](#apply-modes) • [Architecture](#architecture--tech-stack) • [Getting Started](#getting-started) • [License](#license)
 
 </div>
 
@@ -25,6 +25,18 @@
 **Defaulty** is a lightweight, modern Android utility built using **Jetpack Compose** and **Material 3 Expressive**. It provides a centralized, transparent, and frictionless interface to inspect, configure, and manage default system roles and deep-link handling associations on Android 12+ devices.
 
 Android system settings often bury default application switches across disparate submenus. Defaulty surfaces all available roles dynamically, queries runtime role availability, and safely delegates configuration prompts directly to Android's native `RoleManager` and `DomainVerificationManager` APIs.
+
+---
+
+## Screenshots
+
+<div align="center">
+
+| Home | Settings |
+| :---: | :---: |
+| <img src="assets/ui/home.png" alt="Home" width="360" /> | <img src="assets/ui/settings.png" alt="Settings" width="360" /> |
+
+</div>
 
 ---
 

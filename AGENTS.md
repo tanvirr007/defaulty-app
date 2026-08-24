@@ -27,17 +27,17 @@ app/src/main/java/app/defaulty/
 ├── DefaultyApp.kt          # Application class holding singleton dependencies (UserPreferences)
 ├── MainActivity.kt         # Edge-to-edge entry point hosting DefaultyNavGraph
 ├── data/
-│   ├── preferences/        # Local settings (ThemeMode, Onboarding state) via DataStore
+│   ├── preferences/        # Local settings (ThemeMode, ApplyMode, Onboarding state) via DataStore
 │   ├── repository/         # Data layer repositories (DefaultAppRepository, LinkHandlingRepository)
-│   └── system/             # Android OS API wrappers (RoleManager, PackageManager, DomainVerificationManager, ShizukuManager)
+│   └── system/             # System wrappers (PrivilegedShellManager, RootShellManager, ShizukuManager, RoleManagerWrapper, DomainVerificationWrapper)
 ├── domain/
-│   ├── model/              # Domain models (SupportedRole, DefaultAppInfo, LinkHandlingAppInfo)
+│   ├── model/              # Domain models (ApplyMode, SupportedRole, DefaultAppInfo, LinkHandlingAppInfo)
 │   └── usecase/            # Pure business logic and role querying use cases
 ├── navigation/             # Navigation destinations (Screen sealed class) & NavHost graph
 ├── theme/                  # Material 3 Color, Type, Shape & Theme providers
 └── ui/
     ├── components/         # Shared Compose components (AppIcon, DefaultAppRow, CandidateAppCard, AdbCommandsDialog)
-    ├── details/            # Default role details, candidate selector & dual-mode apply logic
+    ├── details/            # Default role details, candidate selector & 1-tap apply logic
     ├── home/               # Primary dashboard listing active & available default roles
     ├── links/              # Domain verification / App Links management screen
     ├── onboarding/         # Onboarding setup wizard (Apply mode & Theme picker)
@@ -55,18 +55,21 @@ When developing or modifying code in this repository, agents must adhere to the 
 - **NEVER** add `android.permission.INTERNET` to `AndroidManifest.xml`.
 - **NEVER** introduce remote analytics, tracking, telemetry, ad networks, or external HTTP libraries.
 - All application data is read dynamically from local Android framework APIs and stored locally via `androidx.datastore:datastore-preferences`.
-- Shizuku integration uses local Android Binder IPC over on-device ADB shell service (`dev.rikka.shizuku:api`) and requires zero network access.
+- Privileged execution (Root via direct `su` pipe, Shizuku via Binder IPC) operates strictly locally on-device and requires zero network access.
 
-### 2. Dual Apply Modes Architecture
-Defaulty supports two distinct apply mechanisms:
-1. **Standard Mode (Zero Setup / Default):**
-   - Dispatches system intents (`RoleManager.createRequestRoleIntent()` or `Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS`).
-   - Delegates safely to Android's built-in Settings confirmation UI.
+### 2. Tri-Mode Apply Architecture
+Defaulty supports three apply mechanisms managed unifiedly via `PrivilegedShellManager`:
+1. **Root Mode (1-Tap Apply):**
+   - Handled via `RootShellManager` (`data/system/RootShellManager.kt`).
+   - Executes privileged ADB/shell commands (`cmd role add-role-holder <roleName> <packageName> 0` and `cmd package set-home-activity`) directly through an interactive `su` process (UID 0 / root).
+   - Confirms instantly with a "Done" toast without navigating away from the app.
 2. **ADB / Shizuku Mode (1-Tap Apply):**
    - Handled via `ShizukuManager` (`data/system/ShizukuManager.kt`).
-   - Executes privileged ADB shell commands (`cmd role add-role-holder <roleName> <packageName> 0` and `cmd package set-home-activity`) in the background under UID 2000 (Shell).
-   - Confirms instantly with a "Done" toast without navigating away from the app.
-   - Always probe `ShizukuManager.hasShizukuPermission()` before attempting shell execution; gracefully fallback to Standard Mode if Shizuku is unavailable.
+   - Executes privileged shell commands in the background under UID 2000 (Shell) via Shizuku's local binder interface.
+   - Always probe `ShizukuManager.hasShizukuPermission()` before shell execution; gracefully fallback to Standard Mode if Shizuku is unavailable.
+3. **Standard Mode (Zero Setup / Default):**
+   - Dispatches system intents (`RoleManager.createRequestRoleIntent()` or `Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS`).
+   - Delegates safely to Android's built-in Settings confirmation UI without requiring root, Shizuku, or PC setup.
 
 ### 3. Android Role & System Management Conventions
 - **Single Source of Truth:** `SupportedRole` enum (`app/src/main/java/app/defaulty/domain/model/SupportedRole.kt`) is the single source of truth for all supported Android system roles.
