@@ -229,29 +229,7 @@ fun MediaHandlerDetailsScreen(
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        OutlinedButton(
-                            onClick = {
-                                selectedCandidate?.let {
-                                    try {
-                                        context.startActivity(viewModel.getManageLinksIntent(it.packageName))
-                                    } catch (_: Exception) {
-                                        try {
-                                            context.startActivity(viewModel.getAppSettingsIntent(it.packageName))
-                                        } catch (_: Exception) {}
-                                    }
-                                }
-                            },
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.media_open_defaults_action),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Medium,
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
                         Button(
                             onClick = {
                                 launchChooser(
@@ -260,17 +238,16 @@ fun MediaHandlerDetailsScreen(
                                 )
                             },
                             shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = null,
-                                modifier = Modifier.size(16.dp),
+                                modifier = Modifier.size(18.dp),
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = stringResource(R.string.media_test_chooser_action),
-                                style = MaterialTheme.typography.labelMedium,
+                                text = stringResource(R.string.apply_default),
+                                style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.SemiBold,
                             )
                         }
