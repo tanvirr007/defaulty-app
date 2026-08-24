@@ -14,7 +14,7 @@
 
 <br/>
 
-[Download Latest APK](https://github.com/tanvirr007/defaulty-app/releases/latest/download/Defaulty.apk) • [Features](#key-features) • [Supported Roles](#supported-roles) • [Apply Modes](#apply-modes) • [Architecture](#architecture--tech-stack) • [Getting Started](#getting-started) • [License](#license)
+[Download Latest APK](https://github.com/tanvirr007/defaulty-app/releases/latest/download/Defaulty.apk) • [Why Defaulty?](#why-defaulty) • [Features](#key-features) • [Supported Roles](#supported-roles) • [Apply Modes](#apply-modes) • [Architecture](#architecture--tech-stack) • [Getting Started](#getting-started) • [License](#license)
 
 </div>
 
@@ -25,6 +25,30 @@
 **Defaulty** is a lightweight, modern Android utility built using **Jetpack Compose** and **Material 3 Expressive**. It provides a centralized, transparent, and frictionless interface to inspect, configure, and manage default system roles and deep-link handling associations on Android 12+ devices.
 
 Android system settings often bury default application switches across disparate submenus. Defaulty surfaces all available roles dynamically, queries runtime role availability, and safely delegates configuration prompts directly to Android's native `RoleManager` and `DomainVerificationManager` APIs.
+
+---
+
+## Why Defaulty?
+
+Most default app switcher utilities on Android suffer from aggressive advertising, tracking scripts, cluttered interfaces, or simply act as basic shortcuts that throw you back into deep system settings menus. 
+
+**Defaulty** was built to provide a clean, modern, and genuinely frictionless experience:
+
+| Feature / Aspect | **Defaulty** | **Typical Other Apps** |
+| :--- | :--- | :--- |
+| **Ads & Monetization** | **100% Ad-Free** (Zero ads, zero subscriptions, forever free) | Filled with banner ads, interstitial popups, and paywalls |
+| **Privacy & Permissions** | **Zero Internet Permission** (`INTERNET` is not in manifest) | Requests network access, bundles third-party ad SDKs & telemetry |
+| **1-Tap Quick Apply** | **Instant 1-Tap switching** via Root or Shizuku (ADB) | Not supported; always redirects to manual system settings |
+| **Comprehensive Scope** | Core roles, Media handlers (Audio, Video, PDF), Notes, Wallet, & Link Verification | Limited to only 3–4 basic roles (Browser, Dialer, SMS) |
+| **App Links & Deep Links** | Native Android 12+ Domain Verification manager built-in | Often missing or unsupported |
+| **Modern Design** | Native Jetpack Compose + Material 3 Expressive + Dynamic Color | Outdated, legacy UI with inconsistent themes |
+| **Open Source** | Fully open source under Apache 2.0 | Closed source with proprietary tracking |
+
+### What Sets Defaulty Apart:
+- **Zero Ads & Zero Tracking**: Defaulty does not declare or request the `android.permission.INTERNET` permission in its manifest. Your preferences and device data never leave your phone.
+- **True 1-Tap Apply**: With on-device Shizuku or Root integration, you can change your default browser, dialer, launcher, or assistant in a single tap without navigating away from the app.
+- **Copy-Paste ADB Shell Commands**: Don't have Root or Shizuku running? Defaulty generates copy-pasteable `cmd role add-role-holder` commands ready to run via your computer's terminal.
+- **Unified Media & Link Handling Hub**: Manage default handlers for web links, videos, audio, images, PDFs, and Android 12+ domain verification in one cohesive dashboard.
 
 ---
 
