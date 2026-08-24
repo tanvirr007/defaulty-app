@@ -341,8 +341,6 @@ fun ApplyModesScreen(
                             selected = currentSelectedMode == ApplyMode.ROOT,
                             statusBadge = if (effectivePersistedMode == ApplyMode.ROOT) {
                                 stringResource(R.string.badge_current_active)
-                            } else if (isRootAvailable) {
-                                stringResource(R.string.status_available)
                             } else null,
                             onClick = {
                                 selectedMode = ApplyMode.ROOT
@@ -358,8 +356,6 @@ fun ApplyModesScreen(
                             selected = currentSelectedMode == ApplyMode.SHIZUKU,
                             statusBadge = if (effectivePersistedMode == ApplyMode.SHIZUKU) {
                                 stringResource(R.string.badge_current_active)
-                            } else if (isShizukuActive) {
-                                stringResource(R.string.status_available)
                             } else null,
                             onClick = {
                                 selectedMode = ApplyMode.SHIZUKU
