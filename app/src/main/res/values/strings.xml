@@ -237,8 +237,8 @@
     <string name="btn_authorized">Authorized</string>
     <string name="btn_root_granted">Root Granted (Re-check)</string>
     <string name="badge_current_active">Current</string>
-    <string name="root_fallback_toast">Root access is not available. Falling back to Standard Mode.</string>
-    <string name="shizuku_fallback_toast">Shizuku is not running or authorized. Falling back to Standard Mode.</string>
+    <string name="root_fallback_toast">Root access is not available</string>
+    <string name="shizuku_fallback_toast">Shizuku is not running or authorized</string>
     <string name="mode_applied_toast">%1$s applied</string>
 </resources>
 

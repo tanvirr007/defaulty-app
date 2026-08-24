@@ -230,7 +230,7 @@ fun ApplyModesScreen(
                         Toast.makeText(
                             context,
                             context.getString(R.string.root_fallback_toast),
-                            Toast.LENGTH_LONG,
+                            Toast.LENGTH_SHORT,
                         ).show()
                         selectedMode = ApplyMode.STANDARD
                         app.userPreferences.setApplyMode(ApplyMode.STANDARD)
@@ -260,7 +260,7 @@ fun ApplyModesScreen(
                             Toast.makeText(
                                 context,
                                 context.getString(R.string.shizuku_fallback_toast),
-                                Toast.LENGTH_LONG,
+                                Toast.LENGTH_SHORT,
                             ).show()
                             selectedMode = ApplyMode.STANDARD
                             app.userPreferences.setApplyMode(ApplyMode.STANDARD)
