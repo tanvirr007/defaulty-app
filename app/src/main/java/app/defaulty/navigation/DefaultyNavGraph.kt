@@ -313,7 +313,10 @@ fun DefaultyNavGraph(
                         type = mediaType,
                         onNavigateBack = {
                             navController.popBackStack()
-                        }
+                        },
+                        onNavigateToApplyModes = {
+                            navController.navigate(Screen.ApplyModes.route)
+                        },
                     )
                 } else {
                     HomeScreen(

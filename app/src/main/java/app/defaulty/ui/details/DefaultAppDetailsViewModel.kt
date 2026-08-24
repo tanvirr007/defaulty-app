@@ -97,6 +97,18 @@ class DefaultAppDetailsViewModel(
     }
 
     /**
+     * Clears the default role holder via privileged shell (Root or Shizuku).
+     */
+    suspend fun clearDefaultViaPrivilegedShell(): Boolean {
+        val mode = userPreferences.applyMode.first()
+        val success = PrivilegedShellManager.clearRoleHolders(role, mode)
+        if (success) {
+            refresh()
+        }
+        return success
+    }
+
+    /**
      * Get the intent to change the default for this role via system settings.
      */
     fun getChangeDefaultIntent(): Intent =

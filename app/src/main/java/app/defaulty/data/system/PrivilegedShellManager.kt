@@ -64,6 +64,79 @@ object PrivilegedShellManager {
     }
 
     /**
+     * Clears all preferred activities for a package (e.g. Media/File "Always" defaults).
+     */
+    suspend fun clearPackagePreferredActivities(
+        packageName: String,
+        mode: ApplyMode,
+    ): Boolean {
+        return when (mode) {
+            ApplyMode.ROOT -> RootShellManager.clearPackagePreferredActivities(packageName)
+            ApplyMode.SHIZUKU -> ShizukuManager.clearPackagePreferredActivities(packageName)
+            ApplyMode.AUTO -> {
+                if (RootShellManager.isRootAvailable()) {
+                    val success = RootShellManager.clearPackagePreferredActivities(packageName)
+                    if (success) return true
+                }
+                if (ShizukuManager.hasShizukuPermission()) {
+                    return ShizukuManager.clearPackagePreferredActivities(packageName)
+                }
+                false
+            }
+            ApplyMode.STANDARD -> false
+        }
+    }
+
+    /**
+     * Removes a role holder from a system role.
+     */
+    suspend fun removeRoleHolder(
+        role: SupportedRole,
+        packageName: String,
+        mode: ApplyMode,
+    ): Boolean {
+        return when (mode) {
+            ApplyMode.ROOT -> RootShellManager.removeRoleHolder(role.roleName, packageName)
+            ApplyMode.SHIZUKU -> ShizukuManager.removeRoleHolder(role.roleName, packageName)
+            ApplyMode.AUTO -> {
+                if (RootShellManager.isRootAvailable()) {
+                    val success = RootShellManager.removeRoleHolder(role.roleName, packageName)
+                    if (success) return true
+                }
+                if (ShizukuManager.hasShizukuPermission()) {
+                    return ShizukuManager.removeRoleHolder(role.roleName, packageName)
+                }
+                false
+            }
+            ApplyMode.STANDARD -> false
+        }
+    }
+
+    /**
+     * Clears all role holders for a system role.
+     */
+    suspend fun clearRoleHolders(
+        role: SupportedRole,
+        mode: ApplyMode,
+    ): Boolean {
+        return when (mode) {
+            ApplyMode.ROOT -> RootShellManager.clearRoleHolders(role.roleName)
+            ApplyMode.SHIZUKU -> ShizukuManager.clearRoleHolders(role.roleName)
+            ApplyMode.AUTO -> {
+                if (RootShellManager.isRootAvailable()) {
+                    val success = RootShellManager.clearRoleHolders(role.roleName)
+                    if (success) return true
+                }
+                if (ShizukuManager.hasShizukuPermission()) {
+                    return ShizukuManager.clearRoleHolders(role.roleName)
+                }
+                false
+            }
+            ApplyMode.STANDARD -> false
+        }
+    }
+
+    /**
      * Returns a human-readable description of the active privilege backend.
      */
     suspend fun getActiveBackendLabel(mode: ApplyMode): String {

@@ -32,10 +32,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Terminal
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,10 +47,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -69,6 +75,7 @@ import app.defaulty.domain.model.MediaHandlerType
 import app.defaulty.ui.components.AppIcon
 import app.defaulty.ui.components.CandidateAppCard
 import app.defaulty.ui.components.DefaultyTopBar
+import kotlinx.coroutines.launch
 
 /**
  * Media & File Handler Details screen.
@@ -81,6 +88,7 @@ import app.defaulty.ui.components.DefaultyTopBar
 fun MediaHandlerDetailsScreen(
     type: MediaHandlerType,
     onNavigateBack: () -> Unit,
+    onNavigateToApplyModes: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as Application
@@ -89,10 +97,14 @@ fun MediaHandlerDetailsScreen(
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
+    val coroutineScope = rememberCoroutineScope()
 
     val activeDefaultPackage = uiState.defaultApp?.holderPackageName
     var selectedPackage by rememberSaveable(type.id) {
         mutableStateOf<String?>(null)
+    }
+    var showClearGuidanceDialog by rememberSaveable {
+        mutableStateOf(false)
     }
 
     val effectiveSelectedPackage = selectedPackage ?: activeDefaultPackage
@@ -119,7 +131,7 @@ fun MediaHandlerDetailsScreen(
         viewModel.refresh()
     }
 
-    val launchChooser: (String?, String?) -> Unit = { _, _ ->
+    val launchChooserDirectly: () -> Unit = {
         val promptTitle = context.getString(R.string.media_open_with_prompt)
         val intent = viewModel.getMediaChooserIntent(promptTitle)
         try {
@@ -157,6 +169,64 @@ fun MediaHandlerDetailsScreen(
         }
     }
 
+    if (showClearGuidanceDialog) {
+        val defaultAppLabel = uiState.defaultApp?.holderAppLabel ?: activeDefaultPackage.orEmpty()
+        AlertDialog(
+            onDismissRequest = { showClearGuidanceDialog = false },
+            title = {
+                Text(
+                    text = stringResource(R.string.media_clear_default_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(
+                        R.string.media_clear_default_message,
+                        stringResource(type.displayLabelRes),
+                        defaultAppLabel,
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showClearGuidanceDialog = false
+                        activeDefaultPackage?.let { pkg ->
+                            try {
+                                context.startActivity(viewModel.getAppOpenByDefaultSettingsIntent(pkg))
+                            } catch (e: Exception) {
+                                try {
+                                    context.startActivity(viewModel.getAppSettingsIntent(pkg))
+                                } catch (ex: Exception) {
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.unable_to_open_settings),
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
+                            }
+                        }
+                    },
+                ) {
+                    Text(stringResource(R.string.btn_open_app_defaults))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showClearGuidanceDialog = false
+                        launchChooserDirectly()
+                    },
+                ) {
+                    Text(stringResource(R.string.btn_open_chooser_anyway))
+                }
+            },
+        )
+    }
+
     Scaffold(
         topBar = {
             DefaultyTopBar(
@@ -166,6 +236,15 @@ fun MediaHandlerDetailsScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.cd_navigate_back),
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onNavigateToApplyModes) {
+                        Icon(
+                            imageVector = Icons.Outlined.Terminal,
+                            contentDescription = stringResource(R.string.adb_commands_title),
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                     }
                 },
@@ -232,10 +311,22 @@ fun MediaHandlerDetailsScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Button(
                             onClick = {
-                                launchChooser(
-                                    selectedCandidate?.packageName,
-                                    selectedCandidate?.appLabel,
-                                )
+                                coroutineScope.launch {
+                                    val capable = viewModel.is1TapApplyCapable()
+                                    if (capable) {
+                                        // Automatically clear previous default to guarantee "Always / Just once" prompt
+                                        activeDefaultPackage?.let {
+                                            viewModel.clearActiveDefault(it)
+                                        }
+                                        launchChooserDirectly()
+                                    } else {
+                                        if (activeDefaultPackage != null) {
+                                            showClearGuidanceDialog = true
+                                        } else {
+                                            launchChooserDirectly()
+                                        }
+                                    }
+                                }
                             },
                             shape = RoundedCornerShape(12.dp),
                         ) {
@@ -328,65 +419,120 @@ fun MediaHandlerDetailsScreen(
                             color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Row(
-                                modifier = Modifier.padding(14.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                AppIcon(
-                                    drawable = info.holderAppIcon,
-                                    contentDescription = info.holderAppLabel?.let {
-                                        stringResource(R.string.cd_app_icon, it)
-                                    },
-                                    size = 48.dp,
-                                )
+                            Column(modifier = Modifier.padding(14.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    AppIcon(
+                                        drawable = info.holderAppIcon,
+                                        contentDescription = info.holderAppLabel?.let {
+                                            stringResource(R.string.cd_app_icon, it)
+                                        },
+                                        size = 48.dp,
+                                    )
 
-                                Spacer(modifier = Modifier.width(14.dp))
+                                    Spacer(modifier = Modifier.width(14.dp))
 
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    ) {
-                                        Text(
-                                            text = info.holderAppLabel ?: info.holderPackageName,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier.weight(1f, fill = false),
-                                        )
-                                        Surface(
-                                            shape = RoundedCornerShape(6.dp),
-                                            color = MaterialTheme.colorScheme.primaryContainer,
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                                         ) {
-                                            Row(
-                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                            Text(
+                                                text = info.holderAppLabel ?: info.holderPackageName,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.SemiBold,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                modifier = Modifier.weight(1f, fill = false),
+                                            )
+                                            Surface(
+                                                shape = RoundedCornerShape(6.dp),
+                                                color = MaterialTheme.colorScheme.primaryContainer,
                                             ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.CheckCircle,
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(12.dp),
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                )
-                                                Text(
-                                                    text = stringResource(R.string.badge_active_default),
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                )
+                                                Row(
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.CheckCircle,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(12.dp),
+                                                        tint = MaterialTheme.colorScheme.primary,
+                                                    )
+                                                    Text(
+                                                        text = stringResource(R.string.badge_active_default),
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                    )
+                                                }
                                             }
                                         }
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = info.holderPackageName,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
                                     }
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = info.holderPackageName,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    TextButton(
+                                        onClick = {
+                                            coroutineScope.launch {
+                                                val capable = viewModel.is1TapApplyCapable()
+                                                if (capable) {
+                                                    val success = viewModel.clearActiveDefault(info.holderPackageName)
+                                                    if (success) {
+                                                        Toast.makeText(
+                                                            context,
+                                                            context.getString(R.string.media_default_cleared_toast),
+                                                            Toast.LENGTH_SHORT,
+                                                        ).show()
+                                                    } else {
+                                                        try {
+                                                            context.startActivity(viewModel.getAppOpenByDefaultSettingsIntent(info.holderPackageName))
+                                                        } catch (e: Exception) {
+                                                            context.startActivity(viewModel.getAppSettingsIntent(info.holderPackageName))
+                                                        }
+                                                    }
+                                                } else {
+                                                    try {
+                                                        context.startActivity(viewModel.getAppOpenByDefaultSettingsIntent(info.holderPackageName))
+                                                    } catch (e: Exception) {
+                                                        context.startActivity(viewModel.getAppSettingsIntent(info.holderPackageName))
+                                                    }
+                                                }
+                                            }
+                                        },
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.DeleteOutline,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp),
+                                            tint = MaterialTheme.colorScheme.error,
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = stringResource(R.string.clear_default),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.error,
+                                        )
+                                    }
                                 }
                             }
                         }

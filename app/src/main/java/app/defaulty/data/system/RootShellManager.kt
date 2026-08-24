@@ -131,6 +131,40 @@ object RootShellManager {
     }
 
     /**
+     * Clears all preferred activities for a package (e.g. Media/File "Always" defaults).
+     * Once cleared, Android's Intent Resolver will prompt the user with "Just once" / "Always" again.
+     */
+    suspend fun clearPackagePreferredActivities(packageName: String): Boolean {
+        val primaryCmd = "cmd package clear-package-preferred-activities --user 0 $packageName"
+        if (executeCommand(primaryCmd)) return true
+
+        val fallbackCmd = "pm clear-package-preferred-activities $packageName"
+        return executeCommand(fallbackCmd)
+    }
+
+    /**
+     * Removes a role holder from a specific system role via root shell.
+     */
+    suspend fun removeRoleHolder(roleName: String, packageName: String): Boolean {
+        val primaryCmd = "cmd role remove-role-holder --user 0 $roleName $packageName 0"
+        if (executeCommand(primaryCmd)) return true
+
+        val fallbackCmd = "cmd role remove-role-holder $roleName $packageName 0"
+        return executeCommand(fallbackCmd)
+    }
+
+    /**
+     * Clears all role holders for a specific system role via root shell.
+     */
+    suspend fun clearRoleHolders(roleName: String): Boolean {
+        val primaryCmd = "cmd role clear-role-holders --user 0 $roleName 0"
+        if (executeCommand(primaryCmd)) return true
+
+        val fallbackCmd = "cmd role clear-role-holders $roleName 0"
+        return executeCommand(fallbackCmd)
+    }
+
+    /**
      * Drains an InputStream into a String, reading all available bytes.
      * Must be called before process.waitFor() to prevent deadlocks.
      */

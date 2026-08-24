@@ -4,7 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import app.defaulty.data.preferences.ApplyMode
 import app.defaulty.data.system.DomainVerificationWrapper
+import app.defaulty.data.system.PrivilegedShellManager
 import app.defaulty.data.system.RoleManagerWrapper
 import app.defaulty.domain.model.CandidateAppInfo
 import app.defaulty.domain.model.DefaultAppInfo
@@ -194,6 +196,24 @@ class DefaultAppsRepository(
             Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
             Uri.parse("package:$packageName")
         )
+
+    /**
+     * Clear preferred activities for a package via PrivilegedShellManager.
+     */
+    suspend fun clearPackagePreferredActivities(packageName: String, mode: ApplyMode): Boolean =
+        PrivilegedShellManager.clearPackagePreferredActivities(packageName, mode)
+
+    /**
+     * Clear all role holders for a system role via PrivilegedShellManager.
+     */
+    suspend fun clearRoleHolders(role: SupportedRole, mode: ApplyMode): Boolean =
+        PrivilegedShellManager.clearRoleHolders(role, mode)
+
+    /**
+     * Remove a role holder from a system role via PrivilegedShellManager.
+     */
+    suspend fun removeRoleHolder(role: SupportedRole, packageName: String, mode: ApplyMode): Boolean =
+        PrivilegedShellManager.removeRoleHolder(role, packageName, mode)
 
     /**
      * Get all apps with link handling configured via DomainVerificationManager.

@@ -153,6 +153,43 @@ object ShizukuManager {
     }
 
     /**
+     * Clears all preferred activities for a package (e.g. Media/File "Always" defaults).
+     * Once cleared, Android's Intent Resolver will prompt the user with "Just once" / "Always" again.
+     */
+    suspend fun clearPackagePreferredActivities(packageName: String): Boolean {
+        if (!hasShizukuPermission()) return false
+        val primaryCmd = arrayOf("cmd", "package", "clear-package-preferred-activities", "--user", "0", packageName)
+        if (exec(primaryCmd)) return true
+
+        val fallbackCmd = arrayOf("pm", "clear-package-preferred-activities", packageName)
+        return exec(fallbackCmd)
+    }
+
+    /**
+     * Removes a role holder from a specific system role.
+     */
+    suspend fun removeRoleHolder(roleName: String, packageName: String): Boolean {
+        if (!hasShizukuPermission()) return false
+        val primaryCmd = arrayOf("cmd", "role", "remove-role-holder", "--user", "0", roleName, packageName, "0")
+        if (exec(primaryCmd)) return true
+
+        val fallbackCmd = arrayOf("cmd", "role", "remove-role-holder", roleName, packageName, "0")
+        return exec(fallbackCmd)
+    }
+
+    /**
+     * Clears all role holders for a specific system role.
+     */
+    suspend fun clearRoleHolders(roleName: String): Boolean {
+        if (!hasShizukuPermission()) return false
+        val primaryCmd = arrayOf("cmd", "role", "clear-role-holders", "--user", "0", roleName, "0")
+        if (exec(primaryCmd)) return true
+
+        val fallbackCmd = arrayOf("cmd", "role", "clear-role-holders", roleName, "0")
+        return exec(fallbackCmd)
+    }
+
+    /**
      * Drains an InputStream into a String, reading all available bytes.
      * Must be called before process.waitFor() to prevent pipe buffer deadlocks.
      */

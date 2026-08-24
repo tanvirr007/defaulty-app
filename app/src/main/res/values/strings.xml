@@ -240,6 +240,20 @@
     <string name="root_fallback_toast">Root access is not available</string>
     <string name="shizuku_fallback_toast">Shizuku is not running or authorized</string>
     <string name="mode_applied_toast">%1$s applied</string>
+
+    <!-- Media & Role Clearing and Guidance -->
+    <string name="clear_default">Clear default</string>
+    <string name="clear_role">Clear role</string>
+    <string name="clear_role_set_none">Set to None</string>
+    <string name="clear_default_desc">Clears default preferences so Android prompts with \"Always / Just once\" again.</string>
+    <string name="media_clear_default_title">Clear Previous Default</string>
+    <string name="media_clear_default_message">Android is currently set to open %1$s with \"%2$s\". To change it and show the \"Always / Just once\" prompt again, Android requires clearing defaults for %2$s first.</string>
+    <string name="btn_open_app_defaults">Open Settings to Clear</string>
+    <string name="btn_open_chooser_anyway">Open Chooser Anyway</string>
+    <string name="media_default_cleared_toast">Default cleared. You will now see \"Always / Just once\" when choosing.</string>
+    <string name="role_cleared_toast">Role cleared</string>
+    <string name="single_app_installed_notice">Only 1 compatible app is installed on your device. Install alternative apps from your app store to switch defaults.</string>
+    <string name="single_app_badge">Only app</string>
 </resources>
 
 
