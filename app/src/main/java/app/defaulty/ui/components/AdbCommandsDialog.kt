@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -330,14 +331,15 @@ fun AdbCommandsDialog(
 
                 // Step 3: Authorize
                 GuideStepCard(
-                    icon = Icons.Outlined.Security,
+                    icon = if (isShizukuActive) Icons.Default.CheckCircle else Icons.Outlined.Security,
                     title = stringResource(R.string.shizuku_guide_step3_title),
                     description = stringResource(R.string.shizuku_guide_step3_desc),
-                    actionLabel = stringResource(R.string.btn_authorize),
+                    actionLabel = if (isShizukuActive) stringResource(R.string.btn_authorized) else stringResource(R.string.btn_authorize),
+                    isCompleted = isShizukuActive,
                     onAction = {
                         if (ShizukuManager.hasShizukuPermission()) {
                             isShizukuActive = true
-                            Toast.makeText(context, context.getString(R.string.shizuku_active_badge), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.shizuku_authorized_toast), Toast.LENGTH_SHORT).show()
                         } else {
                             ShizukuManager.requestPermission()
                             isShizukuActive = ShizukuManager.hasShizukuPermission()
@@ -389,13 +391,19 @@ private fun GuideStepCard(
     description: String,
     actionLabel: String,
     onAction: () -> Unit,
+    isCompleted: Boolean = false,
 ) {
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+        color = if (isCompleted) {
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f)
+        },
         border = BorderStroke(
             1.dp,
-            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+            if (isCompleted) MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+            else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
         ),
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -429,8 +437,25 @@ private fun GuideStepCard(
             FilledTonalButton(
                 onClick = onAction,
                 shape = RoundedCornerShape(8.dp),
+                colors = if (isCompleted) {
+                    ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                } else {
+                    ButtonDefaults.filledTonalButtonColors()
+                },
                 modifier = Modifier.fillMaxWidth(),
             ) {
+                if (isCompleted) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                }
                 Text(
                     text = actionLabel,
                     style = MaterialTheme.typography.labelMedium,

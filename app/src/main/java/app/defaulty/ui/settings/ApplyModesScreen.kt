@@ -33,6 +33,7 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -384,26 +385,47 @@ fun ApplyModesScreen(
 
                         // Apply Button
                         val isCurrentModeActive = currentSelectedMode == effectivePersistedMode
-                        Button(
-                            onClick = handleApplyMode,
-                            enabled = !isApplying,
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = if (isCurrentModeActive) {
-                                    stringResource(R.string.btn_mode_already_active)
-                                } else {
-                                    stringResource(R.string.btn_apply_mode)
-                                },
-                                fontWeight = FontWeight.SemiBold,
-                            )
+                        if (isCurrentModeActive) {
+                            FilledTonalButton(
+                                onClick = handleApplyMode,
+                                enabled = !isApplying,
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.filledTonalButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                ),
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.btn_mode_already_active),
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                        } else {
+                            Button(
+                                onClick = handleApplyMode,
+                                enabled = !isApplying,
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.btn_apply_mode),
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
                         }
                     }
                 }
@@ -569,18 +591,39 @@ private fun RootSetupCard(
             )
 
             Spacer(modifier = Modifier.height(14.dp))
-            Button(
-                onClick = onRequestRoot,
-                shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    text = if (isRootAvailable) {
-                        stringResource(R.string.btn_recheck_root)
-                    } else {
-                        stringResource(R.string.btn_request_root)
-                    },
-                )
+            if (isRootAvailable) {
+                FilledTonalButton(
+                    onClick = onRequestRoot,
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.btn_root_granted),
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            } else {
+                Button(
+                    onClick = onRequestRoot,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = stringResource(R.string.btn_request_root),
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
             }
         }
     }
@@ -675,12 +718,39 @@ private fun ShizukuWirelessCard(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = onAuthorize,
-                shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.btn_authorize))
+            if (isShizukuActive) {
+                FilledTonalButton(
+                    onClick = onAuthorize,
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.btn_authorized),
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            } else {
+                Button(
+                    onClick = onAuthorize,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = stringResource(R.string.btn_authorize),
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
             }
         }
     }

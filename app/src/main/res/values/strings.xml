@@ -233,7 +233,9 @@
 
     <!-- Apply Mode Actions & Feedback -->
     <string name="btn_apply_mode">Apply Mode</string>
-    <string name="btn_mode_already_active">Current Mode</string>
+    <string name="btn_mode_already_active">Applied (Current Mode)</string>
+    <string name="btn_authorized">Authorized</string>
+    <string name="btn_root_granted">Root Granted (Re-check)</string>
     <string name="badge_current_active">Current</string>
     <string name="root_fallback_toast">Root access is not available. Falling back to Standard Mode.</string>
     <string name="shizuku_fallback_toast">Shizuku is not running or authorized. Falling back to Standard Mode.</string>
