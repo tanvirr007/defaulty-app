@@ -58,8 +58,12 @@ class MediaHandlerDetailsViewModel(
 
     /**
      * Clears the preferred activities for an active default package via privileged shell.
+     * Disallowed if only 1 app candidate exists.
      */
     suspend fun clearActiveDefault(packageName: String): Boolean {
+        if (_uiState.value.candidateApps.size <= 1) {
+            return false
+        }
         val mode = userPreferences.applyMode.first()
         val success = PrivilegedShellManager.clearPackagePreferredActivities(packageName, mode)
         if (success) {

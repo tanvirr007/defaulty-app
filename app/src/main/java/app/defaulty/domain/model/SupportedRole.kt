@@ -128,6 +128,13 @@ enum class SupportedRole(
         }
     }
 
+    /**
+     * Whether this role supports having its default cleared to None.
+     * Launcher (HOME) must never be cleared to None as an active launcher is required by Android.
+     */
+    val canClearHolder: Boolean
+        get() = this != HOME
+
     companion object {
         /** Look up a role by its Android role name string. */
         fun fromRoleName(roleName: String): SupportedRole? =

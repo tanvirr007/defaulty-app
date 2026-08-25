@@ -98,8 +98,12 @@ class DefaultAppDetailsViewModel(
 
     /**
      * Clears the default role holder via privileged shell (Root or Shizuku).
+     * Disallowed if only 1 app candidate exists or if the role cannot be cleared (e.g. Launcher).
      */
     suspend fun clearDefaultViaPrivilegedShell(): Boolean {
+        if (!role.canClearHolder || _uiState.value.candidateApps.size <= 1) {
+            return false
+        }
         val mode = userPreferences.applyMode.first()
         val success = PrivilegedShellManager.clearRoleHolders(role, mode)
         if (success) {

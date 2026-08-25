@@ -450,50 +450,53 @@ fun DefaultAppDetailsScreen(
                                     }
                                 }
 
-                                Spacer(modifier = Modifier.height(8.dp))
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                                Spacer(modifier = Modifier.height(4.dp))
+                                val canClearRole = candidateApps.size > 1 && role.canClearHolder
+                                if (canClearRole) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                                    Spacer(modifier = Modifier.height(4.dp))
 
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.End,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    val coroutineScope = rememberCoroutineScope()
-                                    TextButton(
-                                        onClick = {
-                                            coroutineScope.launch {
-                                                val capable = viewModel.is1TapApplyCapable()
-                                                if (capable) {
-                                                    val success = viewModel.clearDefaultViaPrivilegedShell()
-                                                    if (success) {
-                                                        DefaultyToast.show(
-                                                            context,
-                                                            R.string.role_cleared_toast,
-                                                        )
-                                                        selectedPackage = null
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        val coroutineScope = rememberCoroutineScope()
+                                        TextButton(
+                                            onClick = {
+                                                coroutineScope.launch {
+                                                    val capable = viewModel.is1TapApplyCapable()
+                                                    if (capable) {
+                                                        val success = viewModel.clearDefaultViaPrivilegedShell()
+                                                        if (success) {
+                                                            DefaultyToast.show(
+                                                                context,
+                                                                R.string.role_cleared_toast,
+                                                            )
+                                                            selectedPackage = null
+                                                        } else {
+                                                            launchRoleChange(null, null)
+                                                        }
                                                     } else {
                                                         launchRoleChange(null, null)
                                                     }
-                                                } else {
-                                                    launchRoleChange(null, null)
                                                 }
-                                            }
-                                        },
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.DeleteOutline,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.error,
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(
-                                            text = stringResource(R.string.clear_role_set_none),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.error,
-                                        )
+                                            },
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.DeleteOutline,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp),
+                                                tint = MaterialTheme.colorScheme.error,
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = stringResource(R.string.clear_role_set_none),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.error,
+                                            )
+                                        }
                                     }
                                 }
                             }

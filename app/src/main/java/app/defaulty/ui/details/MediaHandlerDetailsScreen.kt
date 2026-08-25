@@ -478,49 +478,52 @@ fun MediaHandlerDetailsScreen(
                                     }
                                 }
 
-                                Spacer(modifier = Modifier.height(8.dp))
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                                Spacer(modifier = Modifier.height(4.dp))
+                                val canClearDefault = candidateApps.size > 1
+                                if (canClearDefault) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                                    Spacer(modifier = Modifier.height(4.dp))
 
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.End,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    TextButton(
-                                        onClick = {
-                                            coroutineScope.launch {
-                                                val capable = viewModel.is1TapApplyCapable()
-                                                if (capable) {
-                                                    val success = viewModel.clearActiveDefault(info.holderPackageName)
-                                                    if (success) {
-                                                        selectedPackage = null
-                                                        DefaultyToast.show(
-                                                            context,
-                                                            R.string.media_default_cleared_toast,
-                                                        )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        TextButton(
+                                            onClick = {
+                                                coroutineScope.launch {
+                                                    val capable = viewModel.is1TapApplyCapable()
+                                                    if (capable) {
+                                                        val success = viewModel.clearActiveDefault(info.holderPackageName)
+                                                        if (success) {
+                                                            selectedPackage = null
+                                                            DefaultyToast.show(
+                                                                context,
+                                                                R.string.media_default_cleared_toast,
+                                                            )
+                                                        } else {
+                                                            showClearGuidanceDialog = true
+                                                        }
                                                     } else {
                                                         showClearGuidanceDialog = true
                                                     }
-                                                } else {
-                                                    showClearGuidanceDialog = true
                                                 }
-                                            }
-                                        },
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.DeleteOutline,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.error,
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(
-                                            text = stringResource(R.string.clear_default),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.error,
-                                        )
+                                            },
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.DeleteOutline,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp),
+                                                tint = MaterialTheme.colorScheme.error,
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = stringResource(R.string.clear_default),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.error,
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -627,6 +630,32 @@ fun MediaHandlerDetailsScreen(
                         },
                     )
                     Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                if (candidateApps.size == 1 && activeDefaultPackage != null) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.4f),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp),
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = stringResource(R.string.single_app_installed_notice),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                 }
             }
         }

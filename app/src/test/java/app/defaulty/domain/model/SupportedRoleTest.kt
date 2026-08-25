@@ -74,4 +74,12 @@ class SupportedRoleTest {
             SupportedRole.HOME.getAdbCommand("com.teslacoilsw.launcher"),
         )
     }
+
+    @Test
+    fun `canClearHolder is false only for HOME role`() {
+        org.junit.Assert.assertFalse("HOME role must not be clearable", SupportedRole.HOME.canClearHolder)
+        SupportedRole.entries.filter { it != SupportedRole.HOME }.forEach { role ->
+            assertTrue("$role must be clearable", role.canClearHolder)
+        }
+    }
 }

@@ -119,6 +119,7 @@ object PrivilegedShellManager {
         role: SupportedRole,
         mode: ApplyMode,
     ): Boolean {
+        if (!role.canClearHolder) return false
         return when (mode) {
             ApplyMode.ROOT -> RootShellManager.clearRoleHolders(role.roleName)
             ApplyMode.SHIZUKU -> ShizukuManager.clearRoleHolders(role.roleName)
