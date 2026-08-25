@@ -26,7 +26,7 @@ data class HomeUiState(
 /**
  * ViewModel for the Home screen.
  * Queries available default apps and media handlers on a background thread,
- * splits into prioritized "Your defaults" (primary) and structured "Others" categories.
+ * splits into prioritized "Core defaults" (primary) and structured "Others" categories.
  * Refreshes on ON_RESUME via the Screen composable.
  */
 class HomeViewModel(application: Application) : AndroidViewModel(application) {

@@ -52,7 +52,7 @@ import app.defaulty.ui.components.DefaultyTopBar
 
 /**
  * Main dashboard screen.
- * Displays high-frequency "Your defaults" (Browser, Phone, SMS, Launcher, Assistant)
+ * Displays high-frequency "Core defaults" (Browser, Phone, SMS, Launcher, Assistant)
  * inside grouped card containers and a dedicated entry card for "Others".
  */
 @Composable
@@ -100,7 +100,7 @@ fun HomeScreen(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                // Section 1: "Your defaults" (Primary grouped card)
+                // Section 1: "Core defaults" (Primary grouped card)
                 if (uiState.primaryDefaults.isNotEmpty()) {
                     item(key = "header_primary") {
                         Text(

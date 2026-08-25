@@ -6,7 +6,7 @@
     <string name="nav_settings">Settings</string>
 
     <!-- Home screen -->
-    <string name="your_defaults">Your defaults</string>
+    <string name="your_defaults">Core defaults</string>
     <string name="other_defaults">Others</string>
     <string name="other_defaults_subtitle">Media, files &amp; additional system defaults</string>
     <string name="section_media_defaults">Media &amp; files</string>
